@@ -1,0 +1,1231 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>git-xray report — vben-admin-monorepo</title>
+<style>:root {
+  --bg: #0f1419;
+  --bg-elev: #161c24;
+  --bg-soft: #1d242d;
+  --fg: #e6edf3;
+  --fg-muted: #8b96a4;
+  --border: #2a333e;
+  --accent: #1fa669;
+  --accent-soft: #1fa66922;
+  --warn: #d29922;
+  --warn-soft: #d2992222;
+  --danger: #f85149;
+  --danger-soft: #f8514922;
+  --chart-1: #1fa669;
+  --chart-2: #58a6ff;
+  --chart-3: #d29922;
+  --chart-4: #f85149;
+  --chart-5: #bc8cff;
+  --chart-grid: #2a333e;
+  --shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  --radius: 12px;
+  --font-scale: 1;
+  --line-height: 1.6;
+}
+
+:root[data-theme="light"] {
+  --bg: #fafbfc;
+  --bg-elev: #ffffff;
+  --bg-soft: #f3f5f8;
+  --fg: #1f2328;
+  --fg-muted: #59636e;
+  --border: #d1d9e0;
+  --accent: #1a7f37;
+  --accent-soft: #1a7f3722;
+  --warn: #9a6700;
+  --warn-soft: #9a670022;
+  --danger: #cf222e;
+  --danger-soft: #cf222e22;
+  --chart-grid: #d1d9e0;
+  --shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+:root[data-font="small"]  { --font-scale: 0.9; }
+:root[data-font="default"]{ --font-scale: 1; }
+:root[data-font="large"]  { --font-scale: 1.15; }
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+    "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Helvetica, Arial,
+    sans-serif;
+  font-size: calc(14px * var(--font-scale));
+  line-height: var(--line-height);
+  -webkit-font-smoothing: antialiased;
+  transition: background-color .2s ease, color .2s ease;
+}
+
+a { color: var(--accent); }
+
+.toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 24px;
+  background: var(--bg-elev);
+  border-bottom: 1px solid var(--border);
+  backdrop-filter: blur(8px);
+}
+
+.toolbar .brand {
+  font-weight: 700;
+}
+
+.toolbar button {
+  background: var(--bg-soft);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 12px;
+  cursor: pointer;
+  font-size: 0.9em;
+  font-family: inherit;
+  transition: all .15s ease;
+}
+.toolbar button:hover { border-color: var(--accent); color: var(--accent); }
+.toolbar button.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+.toolbar .group { display: flex; gap: 4px; align-items: center; padding: 2px; background: var(--bg); border-radius: 10px; }
+.toolbar .group span { color: var(--fg-muted); font-size: 0.85em; margin: 0 6px; }
+
+main {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 32px 24px 64px;
+}
+
+.hero {
+  margin-bottom: 32px;
+}
+.hero h1 {
+  margin: 0 0 8px;
+  font-size: 2em;
+}
+.hero p {
+  margin: 0;
+  color: var(--fg-muted);
+}
+.hero .meta {
+  margin-top: 16px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+.hero .meta .cell {
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+}
+.hero .meta .cell .k { color: var(--fg-muted); font-size: 0.8em; }
+.hero .meta .cell .v { font-weight: 600; margin-top: 2px; word-break: break-all; }
+.hero .meta .cell .v code {
+  background: var(--bg-soft);
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 0.9em;
+}
+
+.card {
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: var(--shadow);
+  animation: slide-in .35s ease both;
+}
+@keyframes slide-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.card:hover { border-color: var(--accent); }
+
+.card header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+.card header h2 { margin: 0; font-size: 1.4em; }
+.card .desc { color: var(--fg-muted); margin: 0 0 16px; }
+.card .grade {
+  font-weight: 700;
+  font-size: 1.1em;
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+.grade.a { background: var(--accent-soft); color: var(--accent); }
+.grade.b { background: var(--warn-soft);   color: var(--warn); }
+.grade.c { background: var(--danger-soft); color: var(--danger); }
+
+.bars { width: 100%; }
+.bar-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 60px;
+  align-items: center;
+  gap: 12px;
+  padding: 4px 0;
+}
+.bar-row .file {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+.bar-row .file .icon { flex-shrink: 0; }
+.bar-row .file .name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 0.92em;
+}
+.bar-row .count { text-align: right; font-variant-numeric: tabular-nums; color: var(--fg-muted); }
+
+.bar-track {
+  grid-column: 1 / -1;
+  background: var(--bg-soft);
+  border-radius: 4px;
+  height: 6px;
+  overflow: hidden;
+}
+.bar-fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 4px;
+  animation: fill-in .8s ease;
+}
+@keyframes fill-in { from { width: 0 !important; } }
+.bar-row.risk-warning .bar-fill { background: var(--warn); }
+.bar-row.risk-critical .bar-fill { background: var(--danger); }
+.bar-row.risk-warning .count { color: var(--warn); }
+.bar-row.risk-critical .count { color: var(--danger); }
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.75em;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-weight: 600;
+}
+.pill.critical { background: var(--danger-soft); color: var(--danger); }
+.pill.warning  { background: var(--warn-soft);   color: var(--warn); }
+.pill.ok       { background: var(--accent-soft); color: var(--accent); }
+
+.summary-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+.summary-row .stat {
+  background: var(--bg-soft);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 0.9em;
+}
+.summary-row .stat .k { color: var(--fg-muted); margin-right: 6px; }
+.summary-row .stat .v { font-weight: 700; }
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 8px;
+}
+.table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.table-wrap > table {
+  min-width: 480px;
+}
+th, td {
+  text-align: left;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.95em;
+}
+th { color: var(--fg-muted); font-weight: 600; }
+tr:hover td { background: var(--bg-soft); }
+td code {
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+}
+
+.donut-wrap {
+  display: grid;
+  grid-template-columns: 1fr 220px;
+  gap: 24px;
+  align-items: center;
+}
+.donut-legend { font-size: 0.9em; }
+.donut-legend .item { display: flex; align-items: center; gap: 8px; margin: 4px 0; }
+.donut-legend .swatch { width: 12px; height: 12px; border-radius: 3px; }
+
+.contributor-row {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr) 80px 60px;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 0;
+}
+.contributor-row .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--fg-muted); }
+.contributor-row.active .dot { background: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); }
+.contributor-row .name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.contributor-row .count { text-align: right; font-variant-numeric: tabular-nums; color: var(--fg-muted); }
+.contributor-row .share { text-align: right; color: var(--fg-muted); font-size: 0.9em; }
+.contributor-row .bar-mini {
+  grid-column: 1 / -1;
+  background: var(--bg-soft);
+  height: 4px;
+  border-radius: 2px;
+  overflow: hidden;
+}
+.contributor-row .bar-mini > div {
+  height: 100%;
+  background: var(--accent);
+}
+
+.timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 320px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+.timeline .ev {
+  display: grid;
+  grid-template-columns: 80px 60px 1fr;
+  gap: 12px;
+  padding: 8px 10px;
+  background: var(--bg-soft);
+  border-radius: 6px;
+  border-left: 3px solid var(--danger);
+}
+.timeline .ev .hash { font-family: ui-monospace, monospace; color: var(--danger); }
+.timeline .ev .date { color: var(--fg-muted); font-size: 0.9em; }
+.timeline .ev .subject { word-break: break-word; }
+
+.chart {
+  width: 100%;
+  height: auto;
+  max-height: 600px;
+  display: block;
+}
+.chart-wrap {
+  width: 100%;
+  overflow-x: auto;
+}
+
+footer {
+  text-align: center;
+  color: var(--fg-muted);
+  font-size: 0.85em;
+  padding: 24px;
+}
+
+@media (max-width: 720px) {
+  .donut-wrap { grid-template-columns: 1fr; }
+  .toolbar { flex-wrap: wrap; gap: 8px; padding: 10px 14px; }
+  .hero .meta { grid-template-columns: 1fr 1fr; }
+  main { padding: 20px 14px 48px; }
+  .card { padding: 18px; }
+  .contributor-row { grid-template-columns: 18px minmax(0, 1fr) 60px 56px; gap: 8px; }
+  .timeline .ev { grid-template-columns: 70px 50px 1fr; gap: 8px; padding: 6px 8px; }
+}</style>
+</head>
+<body>
+
+<div class="toolbar">
+  <div class="brand">🩻 git-xray</div>
+  <div style="display: flex; gap: 12px; align-items: center;">
+    <div class="group" role="group" aria-label="Font size">
+      <button data-font="small">A−</button>
+      <button data-font="default" class="active">A</button>
+      <button data-font="large">A+</button>
+    </div>
+    <span>·</span>
+    <button id="lang-toggle">中文 / EN</button>
+    <button id="theme-toggle">☀️</button>
+  </div>
+</div>
+
+<main>
+
+<section class="hero">
+  <h1 data-t="title">git-xray report</h1>
+  <p data-t="subtitle">Five git commands that diagnose a new codebase before you open a single file.</p>
+  <div class="meta">
+    <div class="cell"><div class="k" data-t="repo">Repository</div><div class="v">vben-admin-monorepo</div></div>
+    <div class="cell"><div class="k" data-t="head">HEAD</div><div class="v"><code>8b7c245bc</code></div></div>
+    <div class="cell"><div class="k" data-t="generatedAt">Generated at</div><div class="v">2026-07-11 18:02</div></div>
+    <div class="cell"><div class="k" data-t="elapsed">Elapsed</div><div class="v">600 ms</div></div>
+    <div class="cell"><div class="k" data-t="version">Tool version</div><div class="v"><code>v0.0.2</code></div></div>
+  </div>
+</section>
+
+
+<article class="card">
+  <header>
+    <h2 data-t="churnTitle">Churn Hotspots</h2>
+    
+  </header>
+  <p class="desc" data-t="churnDesc">Most-changed files in the analyzed window. The file at the top is almost always the one people warn you about.</p>
+  <div class="chart-wrap"><svg class="chart" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 504" preserveAspectRatio="xMidYMid meet">
+      <text x="12" y="23.700000000000003" font-size="12" font-family="ui-monospace,monospace" fill="var(--fg)">pnpm-workspace.yaml</text>
+      <rect x="232" y="12" width="436" height="18" fill="var(--bg-soft)" rx="3" />
+      <rect x="232" y="12" width="436" height="18" fill="var(--danger)" rx="3">
+        <title>pnpm-workspace.yaml — 100</title>
+      </rect>
+      <text x="708" y="23.700000000000003" font-size="12" text-anchor="end" fill="var(--fg-muted)">100</text>
+    
+      <text x="12" y="47.7" font-size="12" font-family="ui-monospace,monospace" fill="var(--fg)">package.json</text>
+      <rect x="232" y="36" width="436" height="18" fill="var(--bg-soft)" rx="3" />
+      <rect x="232" y="36" width="244.16000000000003" height="18" fill="var(--danger)" rx="3">
+        <title>package.json — 56</title>
+      </rect>
+      <text x="708" y="47.7" font-size="12" text-anchor="end" fill="var(--fg-muted)">56</text>
+    
+      <text x="12" y="71.7" font-size="12" font-family="ui-monospace,monospace" fill="var(--fg)">…ui-kit/form-ui/src/types.ts</text>
+      <rect x="232" y="60" width="436" height="18" fill="var(--bg-soft)" rx="3" />
+      <rect x="232" y="60" width="104.64" height="18" fill="var(--danger)" rx="3">
+        <title>packages/@core/ui-kit/form-ui/src/types.ts — 24</title>
+      </rect>
+      <text x="708" y="71.7" font-size="12" text-anchor="end" fill="var(--fg-muted)">24</text>
+    
+      <text x="12" y="95.7" font-size="12" font-family="ui-monospace,monospace" fill="var(--fg)">…/adapter/component/index.ts</text>
+      <rect x="232" y="84" width="436" height="18" fill="var(--bg-soft)" rx="3" />
+      <rect x="232" y="84" width="91.56" height="18" fill="var(--accent)" rx="3">
+        <title>playground/src/adapter/component/index.ts — 21</title>
+      </rect>
+      <text x="708" y="95.7" font-size="12" text-anchor="end" fill="var(--fg-muted)">21</text>
+    
+      <text x="12" y="119.7" font-size="12" font-family="ui-monospace,monospace" fill="var(--fg)">…opup-ui/src/modal/modal.vue</text>
+      <rect x="232" y="108" width="436" height="18" fill="var(--bg-soft)" rx="3" />
+      <rect x="232" y="108" width="87.2" height="18" fill="var(--danger)" rx="3">
+        <title>packages/@core/ui-kit/popup-ui/src/modal/modal.vue — 20</title>
+      </rect>
+      <text x="708" y="119.7" font-size="12" text-anchor="end" fill="var(--fg-muted)">20</text>
+    
+      <text x="12" y="143.7" font-size="12" font-family="ui-monospace,monospace" fill="var(--fg)">…nces/preferences-drawer.vue</text>
+      <rect x="232" y="132" width="436" height="18" fill="var(--bg-soft)" rx="3" />
+      <rect x="232" y="132" width="87.2" height="18" fill="var(--accent)" rx="3">
+        <title>packages/effects/layouts/src/widgets/preferences/preferences-drawer.vue — 20</title>
+      </rect>
+      <text x="708" y="143.7" font-size="12" text-anchor="end" fill="var(--fg-muted)">20</text>
+    
+      <text x="12" y="167.7" font-size="12" font-family="ui-monospace,monospace" fill="var(--fg)">…mponents/layout-sidebar.vue</text>
+      <rect x="232" y="156" width="436" height="18" fill="var(--bg-soft)" rx="3" />
+      <rect x="232" y="156" width="82.84" height="18" fill="var(--warn)" rx="3">
+        <title>packages/@core/ui-kit/layout-ui/src/components/layout-sidebar.vue — 19</title>
+      </rect>
+      <text x="708" y="167.7" font-size="12" text-anchor="end" fill="var(--fg-muted)">19</text>
+    
+      <text x="12" y="191.7" font-size="12" font-family="ui-monospace,monospace" fill="var(--fg)">…e/preferences/src/config.ts</text>
+      <rect x="232" y="180" width="436" height="18" fill="var(--bg-soft)" rx="3" />
+      <rect x="232" y="180" width="78.48" height="18" fill="var(--accent)" rx="3">
+        <title>packages/@core/preferences/src/config.ts — 18</title>
+      </rect>
+      <text x="708" y="191.7" font-size="12" text-anchor="end" fill="var(--fg-muted)">18</text>
+    
+      <text x="12" y="215.7" font-size="12" font-family="ui-monospace,monospace" fill="var(--fg)">…re/preferences/src/types.ts</text>
+      <rect x="232" y="204" width="436" height="18" fill="var(--bg-soft)" rx="3" />
+      <rect x="232" y="204" width="78.48" height="18" fill="var(--accent)" rx="3">
+        <title>packages/@core/preferences/src/types.ts — 18</title>
+      </rect>
+      <text x="708" y="215.7" font-size="12" text-anchor="end" fill="var(--fg-muted)">18</text>
+    
+      <text x="12" y="239.7" font-size="12" font-family="ui-monospace,monospace" fill="var(--fg)">.vscode/settings.json</text>
+      <rect x="232" y="228" width="436" height="18" fill="var(--bg-soft)" rx="3" />
+      <rect x="232" y="228" width="74.12" height="18" fill="var(--accent)" rx="3">
+        <title>.vscode/settings.json — 17</title>
+      </rect>
+      <text x="708" y="239.7" font-size="12" text-anchor="end" fill="var(--fg-muted)">17</text>
+    
+      <text x="12" y="263.7" font-size="12" font-family="ui-monospace,monospace" fill="var(--fg)">…/vxe-table/use-vxe-grid.vue</text>
+      <rect x="232" y="252" width="436" height="18" fill="var(--bg-soft)" rx="3" />
+      <rect x="232" y="252" width="74.12" height="18" fill="var(--accent)" rx="3">
+        <title>packages/effects/plugins/src/vxe-table/use-vxe-grid.vue — 17</title>
+      </rect>
+      <text x="708" y="263.7" font-size="12" text-anchor="end" fill="var(--fg-muted)">17</text>
+    
+      <text x="12" y="287.7" font-size="12" font-family="ui-monospace,monospace" fill="var(--fg)">…dcn-ui/src/ui/tree/tree.vue</text>
+      <rect x="232" y="276" width="436" height="18" fill="var(--bg-soft)" rx="3" />
+      <rect x="232" y="276" width="69.76" height="18" fill="var(--accent)" rx="3">
+        <title>packages/@core/ui-kit/shadcn-ui/src/ui/tree/tree.vue — 16</title>
+      </rect>
+      <text x="708" y="287.7" font-size="12" text-anchor="end" fill="var(--fg-muted)">16</text>
+    
+      <text x="12" y="311.7" font-size="12" font-family="ui-monospace,monospace" fill="var(--fg)">…yout-ui/src/vben-layout.vue</text>
+      <rect x="232" y="300" width="436" height="18" fill="var(--bg-soft)" rx="3" />
+      <rect x="232" y="300" width="65.39999999999999" height="18" fill="var(--accent)" rx="3">
+        <title>packages/@core/ui-kit/layout-ui/src/vben-layout.vue — 15</title>
+      </rect>
+      <text x="708" y="311.7" font-size="12" text-anchor="end" fill="var(--fg-muted)">15</text>
+    
+      <text x="12" y="335.7" font-size="12" font-family="ui-monospace,monospace" fill="var(--fg)">…ayouts/src/basic/layout.vue</text>
+      <rect x="232" y="324" width="436" height="18" fill="var(--bg-soft)" rx="3" />
+      <rect x="232" y="324" width="65.39999999999999" height="18" fill="var(--accent)" rx="3">
+        <title>packages/effects/layouts/src/basic/layout.vue — 15</title>
+      </rect>
+      <text x="708" y="335.7" font-size="12" text-anchor="end" fill="var(--fg-muted)">15</text>
+    
+      <text x="12" y="359.7" font-size="12" font-family="ui-monospace,monospace" fill="var(--fg)">…ripts/vsh/src/lint/index.ts</text>
+      <rect x="232" y="348" width="436" height="18" fill="var(--bg-soft)" rx="3" />
+      <rect x="232" y="348" width="65.39999999999999" height="18" fill="var(--accent)" rx="3">
+        <title>scripts/vsh/src/lint/index.ts — 15</title>
+      </rect>
+      <text x="708" y="359.7" font-size="12" text-anchor="end" fill="var(--fg-muted)">15</text>
+    
+      <text x="12" y="383.7" font-size="12" font-family="ui-monospace,monospace" fill="var(--fg)">…/eslint-config/package.json</text>
+      <rect x="232" y="372" width="436" height="18" fill="var(--bg-soft)" rx="3" />
+      <rect x="232" y="372" width="65.39999999999999" height="18" fill="var(--accent)" rx="3">
+        <title>internal/lint-configs/eslint-config/package.json — 15</title>
+      </rect>
+      <text x="708" y="383.7" font-size="12" text-anchor="end" fill="var(--fg-muted)">15</text>
+    
+      <text x="12" y="407.7" font-size="12" font-family="ui-monospace,monospace" fill="var(--fg)">…al/vite-config/package.json</text>
+      <rect x="232" y="396" width="436" height="18" fill="var(--bg-soft)" rx="3" />
+      <rect x="232" y="396" width="65.39999999999999" height="18" fill="var(--accent)" rx="3">
+        <title>internal/vite-config/package.json — 15</title>
+      </rect>
+      <text x="708" y="407.7" font-size="12" text-anchor="end" fill="var(--fg-muted)">15</text>
+    
+      <text x="12" y="431.7" font-size="12" font-family="ui-monospace,monospace" fill="var(--fg)">…/form-render/form-field.vue</text>
+      <rect x="232" y="420" width="436" height="18" fill="var(--bg-soft)" rx="3" />
+      <rect x="232" y="420" width="65.39999999999999" height="18" fill="var(--accent)" rx="3">
+        <title>packages/@core/ui-kit/form-ui/src/form-render/form-field.vue — 15</title>
+      </rect>
+      <text x="708" y="431.7" font-size="12" text-anchor="end" fill="var(--fg-muted)">15</text>
+    
+      <text x="12" y="455.7" font-size="12" font-family="ui-monospace,monospace" fill="var(--fg)">…shots__/config.test.ts.snap</text>
+      <rect x="232" y="444" width="436" height="18" fill="var(--bg-soft)" rx="3" />
+      <rect x="232" y="444" width="61.040000000000006" height="18" fill="var(--accent)" rx="3">
+        <title>packages/@core/preferences/__tests__/__snapshots__/config.test.ts.snap — 14</title>
+      </rect>
+      <text x="708" y="455.7" font-size="12" text-anchor="end" fill="var(--fg-muted)">14</text>
+    
+      <text x="12" y="479.7" font-size="12" font-family="ui-monospace,monospace" fill="var(--fg)">…/adapter/component/index.ts</text>
+      <rect x="232" y="468" width="436" height="18" fill="var(--bg-soft)" rx="3" />
+      <rect x="232" y="468" width="61.040000000000006" height="18" fill="var(--accent)" rx="3">
+        <title>apps/web-antd/src/adapter/component/index.ts — 14</title>
+      </rect>
+      <text x="708" y="479.7" font-size="12" text-anchor="end" fill="var(--fg-muted)">14</text>
+    </svg></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th data-t="fileLabel">File</th><th style="text-align:right" data-t="countLabel">Commits</th><th data-t="riskLabel">Risk</th></tr></thead>
+        <tbody>
+      <tr>
+        <td>⚙️ <code>pnpm-workspace.yaml</code></td>
+        <td style="text-align:right">100</td>
+        <td><span class="pill critical" data-t="riskCritical">CRITICAL</span></td>
+      </tr>
+      <tr>
+        <td>⚙️ <code>package.json</code></td>
+        <td style="text-align:right">56</td>
+        <td><span class="pill critical" data-t="riskCritical">CRITICAL</span></td>
+      </tr>
+      <tr>
+        <td>📘 <code>packages/@core/ui-kit/form-ui/src/types.ts</code></td>
+        <td style="text-align:right">24</td>
+        <td><span class="pill critical" data-t="riskCritical">CRITICAL</span></td>
+      </tr>
+      <tr>
+        <td>📘 <code>playground/src/adapter/component/index.ts</code></td>
+        <td style="text-align:right">21</td>
+        <td><span class="pill ok" data-t="riskNormal">OK</span></td>
+      </tr>
+      <tr>
+        <td>💚 <code>packages/@core/ui-kit/popup-ui/src/modal/modal.vue</code></td>
+        <td style="text-align:right">20</td>
+        <td><span class="pill critical" data-t="riskCritical">CRITICAL</span></td>
+      </tr>
+      <tr>
+        <td>💚 <code>packages/effects/layouts/src/widgets/preferences/preferences-drawer.vue</code></td>
+        <td style="text-align:right">20</td>
+        <td><span class="pill ok" data-t="riskNormal">OK</span></td>
+      </tr>
+      <tr>
+        <td>💚 <code>packages/@core/ui-kit/layout-ui/src/components/layout-sidebar.vue</code></td>
+        <td style="text-align:right">19</td>
+        <td><span class="pill warning" data-t="riskWarning">WARNING</span></td>
+      </tr>
+      <tr>
+        <td>📘 <code>packages/@core/preferences/src/config.ts</code></td>
+        <td style="text-align:right">18</td>
+        <td><span class="pill ok" data-t="riskNormal">OK</span></td>
+      </tr>
+      <tr>
+        <td>📘 <code>packages/@core/preferences/src/types.ts</code></td>
+        <td style="text-align:right">18</td>
+        <td><span class="pill ok" data-t="riskNormal">OK</span></td>
+      </tr>
+      <tr>
+        <td>⚙️ <code>.vscode/settings.json</code></td>
+        <td style="text-align:right">17</td>
+        <td><span class="pill ok" data-t="riskNormal">OK</span></td>
+      </tr>
+      <tr>
+        <td>💚 <code>packages/effects/plugins/src/vxe-table/use-vxe-grid.vue</code></td>
+        <td style="text-align:right">17</td>
+        <td><span class="pill ok" data-t="riskNormal">OK</span></td>
+      </tr>
+      <tr>
+        <td>💚 <code>packages/@core/ui-kit/shadcn-ui/src/ui/tree/tree.vue</code></td>
+        <td style="text-align:right">16</td>
+        <td><span class="pill ok" data-t="riskNormal">OK</span></td>
+      </tr>
+      <tr>
+        <td>💚 <code>packages/@core/ui-kit/layout-ui/src/vben-layout.vue</code></td>
+        <td style="text-align:right">15</td>
+        <td><span class="pill ok" data-t="riskNormal">OK</span></td>
+      </tr>
+      <tr>
+        <td>💚 <code>packages/effects/layouts/src/basic/layout.vue</code></td>
+        <td style="text-align:right">15</td>
+        <td><span class="pill ok" data-t="riskNormal">OK</span></td>
+      </tr>
+      <tr>
+        <td>📘 <code>scripts/vsh/src/lint/index.ts</code></td>
+        <td style="text-align:right">15</td>
+        <td><span class="pill ok" data-t="riskNormal">OK</span></td>
+      </tr>
+      <tr>
+        <td>⚙️ <code>internal/lint-configs/eslint-config/package.json</code></td>
+        <td style="text-align:right">15</td>
+        <td><span class="pill ok" data-t="riskNormal">OK</span></td>
+      </tr>
+      <tr>
+        <td>⚙️ <code>internal/vite-config/package.json</code></td>
+        <td style="text-align:right">15</td>
+        <td><span class="pill ok" data-t="riskNormal">OK</span></td>
+      </tr>
+      <tr>
+        <td>💚 <code>packages/@core/ui-kit/form-ui/src/form-render/form-field.vue</code></td>
+        <td style="text-align:right">15</td>
+        <td><span class="pill ok" data-t="riskNormal">OK</span></td>
+      </tr>
+      <tr>
+        <td>📄 <code>packages/@core/preferences/__tests__/__snapshots__/config.test.ts.snap</code></td>
+        <td style="text-align:right">14</td>
+        <td><span class="pill ok" data-t="riskNormal">OK</span></td>
+      </tr>
+      <tr>
+        <td>📘 <code>apps/web-antd/src/adapter/component/index.ts</code></td>
+        <td style="text-align:right">14</td>
+        <td><span class="pill ok" data-t="riskNormal">OK</span></td>
+      </tr></tbody>
+      </table>
+    </div>
+  
+</article>
+
+
+<article class="card">
+  <header>
+    <h2 data-t="contributorsTitle">Who Built This</h2>
+    <span class="grade a">A</span>
+  </header>
+  <p class="desc" data-t="contributorsDesc">Contributors ranked by commit count, cross-referenced against a recent 6-month activity window.</p>
+  
+    <div class="summary-row">
+      <div class="stat"><span class="k" data-t="topShare">Top share</span><span class="v">34.2%</span></div>
+      <div class="stat"><span class="k" data-t="activeRatio">Active (6mo)</span><span class="v">70/164</span></div>
+      <div class="stat"><span class="k" data-t="commitsLabel">Commits</span><span class="v">714</span></div>
+    </div>
+  <div class="donut-wrap"><div>
+      <div class="contributor-row ">
+        <div class="dot"></div>
+        <div class="name">Netfan</div>
+        <div class="count">244</div>
+        <div class="share">34.2%</div>
+        <div class="bar-mini"><div style="width:100.0%"></div></div>
+      </div>
+      <div class="contributor-row active">
+        <div class="dot"></div>
+        <div class="name">layhuts</div>
+        <div class="count">27</div>
+        <div class="share">3.8%</div>
+        <div class="bar-mini"><div style="width:11.1%"></div></div>
+      </div>
+      <div class="contributor-row active">
+        <div class="dot"></div>
+        <div class="name">dullathanol</div>
+        <div class="count">24</div>
+        <div class="share">3.4%</div>
+        <div class="bar-mini"><div style="width:9.8%"></div></div>
+      </div>
+      <div class="contributor-row active">
+        <div class="dot"></div>
+        <div class="name">vben</div>
+        <div class="count">21</div>
+        <div class="share">2.9%</div>
+        <div class="bar-mini"><div style="width:8.6%"></div></div>
+      </div>
+      <div class="contributor-row active">
+        <div class="dot"></div>
+        <div class="name">zhongming4762</div>
+        <div class="count">18</div>
+        <div class="share">2.5%</div>
+        <div class="bar-mini"><div style="width:7.4%"></div></div>
+      </div>
+      <div class="contributor-row ">
+        <div class="dot"></div>
+        <div class="name">wyc001122</div>
+        <div class="count">15</div>
+        <div class="share">2.1%</div>
+        <div class="bar-mini"><div style="width:6.1%"></div></div>
+      </div>
+      <div class="contributor-row active">
+        <div class="dot"></div>
+        <div class="name">JyQAQ</div>
+        <div class="count">14</div>
+        <div class="share">2.0%</div>
+        <div class="bar-mini"><div style="width:5.7%"></div></div>
+      </div>
+      <div class="contributor-row active">
+        <div class="dot"></div>
+        <div class="name">橙子</div>
+        <div class="count">12</div>
+        <div class="share">1.7%</div>
+        <div class="bar-mini"><div style="width:4.9%"></div></div>
+      </div>
+      <div class="contributor-row active">
+        <div class="dot"></div>
+        <div class="name">xingyu</div>
+        <div class="count">10</div>
+        <div class="share">1.4%</div>
+        <div class="bar-mini"><div style="width:4.1%"></div></div>
+      </div>
+      <div class="contributor-row active">
+        <div class="dot"></div>
+        <div class="name">zoumingjun</div>
+        <div class="count">10</div>
+        <div class="share">1.4%</div>
+        <div class="bar-mini"><div style="width:4.1%"></div></div>
+      </div>
+      <div class="contributor-row ">
+        <div class="dot"></div>
+        <div class="name">Li Kui</div>
+        <div class="count">10</div>
+        <div class="share">1.4%</div>
+        <div class="bar-mini"><div style="width:4.1%"></div></div>
+      </div>
+      <div class="contributor-row ">
+        <div class="dot"></div>
+        <div class="name">Arthur Darkstone</div>
+        <div class="count">9</div>
+        <div class="share">1.3%</div>
+        <div class="bar-mini"><div style="width:3.7%"></div></div>
+      </div>
+      <div class="contributor-row active">
+        <div class="dot"></div>
+        <div class="name">afe1</div>
+        <div class="count">8</div>
+        <div class="share">1.1%</div>
+        <div class="bar-mini"><div style="width:3.3%"></div></div>
+      </div>
+      <div class="contributor-row active">
+        <div class="dot"></div>
+        <div class="name">dependabot[bot]</div>
+        <div class="count">8</div>
+        <div class="share">1.1%</div>
+        <div class="bar-mini"><div style="width:3.3%"></div></div>
+      </div>
+      <div class="contributor-row active">
+        <div class="dot"></div>
+        <div class="name">金毛88</div>
+        <div class="count">7</div>
+        <div class="share">1.0%</div>
+        <div class="bar-mini"><div style="width:2.9%"></div></div>
+      </div></div><div class="donut-legend"><svg class="chart" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180" preserveAspectRatio="xMidYMid meet">
+    <circle cx="90" cy="90" r="70" fill="var(--bg-soft)" />
+    <path d="M 90 90 L 128.41 148.52 A 70 70 0 0 1 128.41 148.52 Z" fill="var(--accent)"><title>Active: 291 commits</title></path>
+    <path d="M 90 90 L 128.41 148.52 A 70 70 0 1 1 90.00 20.00 Z" fill="var(--fg-muted)" opacity="0.4"><title>Inactive: 423 commits</title></path>
+    <circle cx="90" cy="90" r="42" fill="var(--bg-elev)" />
+    <text x="90" y="86" text-anchor="middle" font-size="11" fill="var(--fg-muted)">Active</text>
+    <text x="90" y="104" text-anchor="middle" font-size="16" font-weight="700" fill="var(--fg)">41%</text>
+  </svg><div class="item"><span class="swatch" style="background:var(--accent)"></span> <span data-t="legendActive">🟢 Active (last 6 mo)</span></div><div class="item"><span class="swatch" style="background:var(--fg-muted);opacity:.4"></span> <span data-t="legendInactive">⚫ Inactive</span></div></div></div>
+</article>
+
+
+<article class="card">
+  <header>
+    <h2 data-t="bugsTitle">Where Do Bugs Cluster</h2>
+    
+  </header>
+  <p class="desc" data-t="bugsDesc">Files that appear in commits with bug-related keywords (fix|bug|broken). Compare against churn hotspots above.</p>
+  <div class="chart-wrap"><svg class="chart" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 504" preserveAspectRatio="xMidYMid meet">
+      <text x="12" y="23.700000000000003" font-size="12" font-family="ui-monospace,monospace" fill="var(--fg)">pnpm-workspace.yaml</text>
+      <rect x="232" y="12" width="436" height="18" fill="var(--bg-soft)" rx="3" />
+      <rect x="232" y="12" width="436" height="18" fill="var(--danger)" rx="3">
+        <title>pnpm-workspace.yaml — 21</title>
+      </rect>
+      <text x="708" y="23.700000000000003" font-size="12" text-anchor="end" fill="var(--fg-muted)">21</text>
+    
+      <text x="12" y="47.7" font-size="12" font-family="ui-monospace,monospace" fill="var(--fg)">package.json</text>
+      <rect x="232" y="36" width="436" height="18" fill="var(--bg-soft)" rx="3" />
+      <rect x="232" y="36" width="352.95238095238096" height="18" fill="var(--danger)" rx="3">
+        <title>package.json — 17</title>
+      </rect>
+      <text x="708" y="47.7" font-size="12" text-anchor="end" fill="var(--fg-muted)">17</text>
+    
+      <text x="12" y="71.7" font-size="12" font-family="ui-monospace,monospace" fill="var(--fg)">…mponents/layout-sidebar.vue</text>
+      <rect x="232" y="60" width="436" height="18" fill="var(--bg-soft)" rx="3" />
+      <rect x="232" y="60" width="311.42857142857144" height="18" fill="var(--warn)" rx="3">
+        <title>packages/@core/ui-kit/layout-ui/src/components/layout-sidebar.vue — 15</title>
+      </rect>
+      <text x="708" y="71.7" font-size="12" text-anchor="end" fill="var(--fg-muted)">15</text>
+    
+      <text x="12" y="95.7" font-size="12" font-family="ui-monospace,monospace" fill="var(--fg)">…ui-kit/form-ui/src/types.ts</text>
+      <rect x="232" y="84" width="436" height="18" fill="var(--bg-soft)" rx="3" />
+      <rect x="232" y="84" width="311.42857142857144" height="18" fill="var(--danger)" rx="3">
+        <title>packages/@core/ui-kit/form-ui/src/types.ts — 15</title>
+      </rect>
+      <text x="708" y="95.7" font-size="12" text-anchor="end" fill="var(--fg-muted)">15</text>
+    
+      <text x="12" y="119.7" font-size="12" font-family="ui-monospace,monospace" fill="var(--fg)">…opup-ui/src/modal/modal.vue</text>
+      <rect x="232" y="108" width="436" height="18" fill="var(--bg-soft)" rx="3" />
+      <rect x="232" y="108" width="290.66666666666663" height="18" fill="var(--danger)" rx="3">
+        <title>packages/@core/ui-kit/popup-ui/src/modal/modal.vue — 14</title>
+      </rect>
+      <text x="708" y="119.7" font-size="12" text-anchor="end" fill="var(--fg-muted)">14</text>
+    
+      <text x="12" y="143.7" font-size="12" font-family="ui-monospace,monospace" fill="var(--fg)">…dcn-ui/src/ui/tree/tree.vue</text>
+      <rect x="232" y="132" width="436" height="18" fill="var(--bg-soft)" rx="3" />
+      <rect x="232" y="132" width="290.66666666666663" height="18" fill="var(--accent)" rx="3">
+        <title>packages/@core/ui-kit/shadcn-ui/src/ui/tree/tree.vue — 14</title>
+      </rect>
+      <text x="708" y="143.7" font-size="12" text-anchor="end" fill="var(--fg-muted)">14</text>
+    
+      <text x="12" y="167.7" font-size="12" font-family="ui-monospace,monospace" fill="var(--fg)">…ayouts/src/basic/layout.vue</text>
+      <rect x="232" y="156" width="436" height="18" fill="var(--bg-soft)" rx="3" />
+      <rect x="232" y="156" width="228.38095238095238" height="18" fill="var(--accent)" rx="3">
+        <title>packages/effects/layouts/src/basic/layout.vue — 11</title>
+      </rect>
+      <text x="708" y="167.7" font-size="12" text-anchor="end" fill="var(--fg-muted)">11</text>
+    
+      <text x="12" y="191.7" font-size="12" font-family="ui-monospace,monospace" fill="var(--fg)">…ui/dialog/DialogContent.vue</text>
+      <rect x="232" y="180" width="436" height="18" fill="var(--bg-soft)" rx="3" />
+      <rect x="232" y="180" width="228.38095238095238" height="18" fill="var(--accent)" rx="3">
+        <title>packages/@core/ui-kit/shadcn-ui/src/ui/dialog/DialogContent.vue — 11</title>
+      </rect>
+      <text x="708" y="191.7" font-size="12" text-anchor="end" fill="var(--fg-muted)">11</text>
+    
+      <text x="12" y="215.7" font-size="12" font-family="ui-monospace,monospace" fill="var(--fg)">…/vxe-table/use-vxe-grid.vue</text>
+      <rect x="232" y="204" width="436" height="18" fill="var(--bg-soft)" rx="3" />
+      <rect x="232" y="204" width="228.38095238095238" height="18" fill="var(--accent)" rx="3">
+        <title>packages/effects/plugins/src/vxe-table/use-vxe-grid.vue — 11</title>
+      </rect>
+      <text x="708" y="215.7" font-size="12" text-anchor="end" fill="var(--fg-muted)">11</text>
+    
+      <text x="12" y="239.7" font-size="12" font-family="ui-monospace,monospace" fill="var(--fg)">…yout-ui/src/vben-layout.vue</text>
+      <rect x="232" y="228" width="436" height="18" fill="var(--bg-soft)" rx="3" />
+      <rect x="232" y="228" width="207.61904761904762" height="18" fill="var(--accent)" rx="3">
+        <title>packages/@core/ui-kit/layout-ui/src/vben-layout.vue — 10</title>
+      </rect>
+      <text x="708" y="239.7" font-size="12" text-anchor="end" fill="var(--fg-muted)">10</text>
+    
+      <text x="12" y="263.7" font-size="12" font-family="ui-monospace,monospace" fill="var(--fg)">…ible/collapsible-params.vue</text>
+      <rect x="232" y="252" width="436" height="18" fill="var(--bg-soft)" rx="3" />
+      <rect x="232" y="252" width="207.61904761904762" height="18" fill="var(--accent)" rx="3">
+        <title>packages/@core/ui-kit/shadcn-ui/src/components/collapsible/collapsible-params.vue — 10</title>
+      </rect>
+      <text x="708" y="263.7" font-size="12" text-anchor="end" fill="var(--fg-muted)">10</text>
+    
+      <text x="12" y="287.7" font-size="12" font-family="ui-monospace,monospace" fill="var(--fg)">…nces/preferences-drawer.vue</text>
+      <rect x="232" y="276" width="436" height="18" fill="var(--bg-soft)" rx="3" />
+      <rect x="232" y="276" width="207.61904761904762" height="18" fill="var(--accent)" rx="3">
+        <title>packages/effects/layouts/src/widgets/preferences/preferences-drawer.vue — 10</title>
+      </rect>
+      <text x="708" y="287.7" font-size="12" text-anchor="end" fill="var(--fg-muted)">10</text>
+    
+      <text x="12" y="311.7" font-size="12" font-family="ui-monospace,monospace" fill="var(--fg)">…onents/tabs-chrome/tabs.vue</text>
+      <rect x="232" y="300" width="436" height="18" fill="var(--bg-soft)" rx="3" />
+      <rect x="232" y="300" width="207.61904761904762" height="18" fill="var(--accent)" rx="3">
+        <title>packages/@core/ui-kit/tabs-ui/src/components/tabs-chrome/tabs.vue — 10</title>
+      </rect>
+      <text x="708" y="311.7" font-size="12" text-anchor="end" fill="var(--fg-muted)">10</text>
+    
+      <text x="12" y="335.7" font-size="12" font-family="ui-monospace,monospace" fill="var(--fg)">…e/preferences/src/config.ts</text>
+      <rect x="232" y="324" width="436" height="18" fill="var(--bg-soft)" rx="3" />
+      <rect x="232" y="324" width="186.85714285714283" height="18" fill="var(--accent)" rx="3">
+        <title>packages/@core/preferences/src/config.ts — 9</title>
+      </rect>
+      <text x="708" y="335.7" font-size="12" text-anchor="end" fill="var(--fg-muted)">9</text>
+    
+      <text x="12" y="359.7" font-size="12" font-family="ui-monospace,monospace" fill="var(--fg)">…re/preferences/src/types.ts</text>
+      <rect x="232" y="348" width="436" height="18" fill="var(--bg-soft)" rx="3" />
+      <rect x="232" y="348" width="186.85714285714283" height="18" fill="var(--accent)" rx="3">
+        <title>packages/@core/preferences/src/types.ts — 9</title>
+      </rect>
+      <text x="708" y="359.7" font-size="12" text-anchor="end" fill="var(--fg-muted)">9</text>
+    
+      <text x="12" y="383.7" font-size="12" font-family="ui-monospace,monospace" fill="var(--fg)">…ui/dialog/DialogOverlay.vue</text>
+      <rect x="232" y="372" width="436" height="18" fill="var(--bg-soft)" rx="3" />
+      <rect x="232" y="372" width="186.85714285714283" height="18" fill="var(--accent)" rx="3">
+        <title>packages/@core/ui-kit/shadcn-ui/src/ui/dialog/DialogOverlay.vue — 9</title>
+      </rect>
+      <text x="708" y="383.7" font-size="12" text-anchor="end" fill="var(--fg-muted)">9</text>
+    
+      <text x="12" y="407.7" font-size="12" font-family="ui-monospace,monospace" fill="var(--fg)">…ferences/src/preferences.ts</text>
+      <rect x="232" y="396" width="436" height="18" fill="var(--bg-soft)" rx="3" />
+      <rect x="232" y="396" width="186.85714285714283" height="18" fill="var(--accent)" rx="3">
+        <title>packages/@core/preferences/src/preferences.ts — 9</title>
+      </rect>
+      <text x="708" y="407.7" font-size="12" text-anchor="end" fill="var(--fg-muted)">9</text>
+    
+      <text x="12" y="431.7" font-size="12" font-family="ui-monospace,monospace" fill="var(--fg)">…/form-render/form-field.vue</text>
+      <rect x="232" y="420" width="436" height="18" fill="var(--bg-soft)" rx="3" />
+      <rect x="232" y="420" width="186.85714285714283" height="18" fill="var(--accent)" rx="3">
+        <title>packages/@core/ui-kit/form-ui/src/form-render/form-field.vue — 9</title>
+      </rect>
+      <text x="708" y="431.7" font-size="12" text-anchor="end" fill="var(--fg-muted)">9</text>
+    
+      <text x="12" y="455.7" font-size="12" font-family="ui-monospace,monospace" fill="var(--fg)">…shots__/config.test.ts.snap</text>
+      <rect x="232" y="444" width="436" height="18" fill="var(--bg-soft)" rx="3" />
+      <rect x="232" y="444" width="166.09523809523807" height="18" fill="var(--accent)" rx="3">
+        <title>packages/@core/preferences/__tests__/__snapshots__/config.test.ts.snap — 8</title>
+      </rect>
+      <text x="708" y="455.7" font-size="12" text-anchor="end" fill="var(--fg-muted)">8</text>
+    
+      <text x="12" y="479.7" font-size="12" font-family="ui-monospace,monospace" fill="var(--fg)">.vscode/settings.json</text>
+      <rect x="232" y="468" width="436" height="18" fill="var(--bg-soft)" rx="3" />
+      <rect x="232" y="468" width="166.09523809523807" height="18" fill="var(--accent)" rx="3">
+        <title>.vscode/settings.json — 8</title>
+      </rect>
+      <text x="708" y="479.7" font-size="12" text-anchor="end" fill="var(--fg-muted)">8</text>
+    </svg></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th data-t="fileLabel">File</th><th style="text-align:right" data-t="countLabel">Commits</th><th data-t="riskLabel">Risk</th></tr></thead>
+        <tbody>
+      <tr>
+        <td>⚙️ <code>pnpm-workspace.yaml</code></td>
+        <td style="text-align:right">21</td>
+        <td><span class="pill critical" data-t="riskCritical">CRITICAL</span></td>
+      </tr>
+      <tr>
+        <td>⚙️ <code>package.json</code></td>
+        <td style="text-align:right">17</td>
+        <td><span class="pill critical" data-t="riskCritical">CRITICAL</span></td>
+      </tr>
+      <tr>
+        <td>💚 <code>packages/@core/ui-kit/layout-ui/src/components/layout-sidebar.vue</code></td>
+        <td style="text-align:right">15</td>
+        <td><span class="pill warning" data-t="riskWarning">WARNING</span></td>
+      </tr>
+      <tr>
+        <td>📘 <code>packages/@core/ui-kit/form-ui/src/types.ts</code></td>
+        <td style="text-align:right">15</td>
+        <td><span class="pill critical" data-t="riskCritical">CRITICAL</span></td>
+      </tr>
+      <tr>
+        <td>💚 <code>packages/@core/ui-kit/popup-ui/src/modal/modal.vue</code></td>
+        <td style="text-align:right">14</td>
+        <td><span class="pill critical" data-t="riskCritical">CRITICAL</span></td>
+      </tr>
+      <tr>
+        <td>💚 <code>packages/@core/ui-kit/shadcn-ui/src/ui/tree/tree.vue</code></td>
+        <td style="text-align:right">14</td>
+        <td><span class="pill ok" data-t="riskNormal">OK</span></td>
+      </tr>
+      <tr>
+        <td>💚 <code>packages/effects/layouts/src/basic/layout.vue</code></td>
+        <td style="text-align:right">11</td>
+        <td><span class="pill ok" data-t="riskNormal">OK</span></td>
+      </tr>
+      <tr>
+        <td>💚 <code>packages/@core/ui-kit/shadcn-ui/src/ui/dialog/DialogContent.vue</code></td>
+        <td style="text-align:right">11</td>
+        <td><span class="pill ok" data-t="riskNormal">OK</span></td>
+      </tr>
+      <tr>
+        <td>💚 <code>packages/effects/plugins/src/vxe-table/use-vxe-grid.vue</code></td>
+        <td style="text-align:right">11</td>
+        <td><span class="pill ok" data-t="riskNormal">OK</span></td>
+      </tr>
+      <tr>
+        <td>💚 <code>packages/@core/ui-kit/layout-ui/src/vben-layout.vue</code></td>
+        <td style="text-align:right">10</td>
+        <td><span class="pill ok" data-t="riskNormal">OK</span></td>
+      </tr>
+      <tr>
+        <td>💚 <code>packages/@core/ui-kit/shadcn-ui/src/components/collapsible/collapsible-params.vue</code></td>
+        <td style="text-align:right">10</td>
+        <td><span class="pill ok" data-t="riskNormal">OK</span></td>
+      </tr>
+      <tr>
+        <td>💚 <code>packages/effects/layouts/src/widgets/preferences/preferences-drawer.vue</code></td>
+        <td style="text-align:right">10</td>
+        <td><span class="pill ok" data-t="riskNormal">OK</span></td>
+      </tr>
+      <tr>
+        <td>💚 <code>packages/@core/ui-kit/tabs-ui/src/components/tabs-chrome/tabs.vue</code></td>
+        <td style="text-align:right">10</td>
+        <td><span class="pill ok" data-t="riskNormal">OK</span></td>
+      </tr>
+      <tr>
+        <td>📘 <code>packages/@core/preferences/src/config.ts</code></td>
+        <td style="text-align:right">9</td>
+        <td><span class="pill ok" data-t="riskNormal">OK</span></td>
+      </tr>
+      <tr>
+        <td>📘 <code>packages/@core/preferences/src/types.ts</code></td>
+        <td style="text-align:right">9</td>
+        <td><span class="pill ok" data-t="riskNormal">OK</span></td>
+      </tr>
+      <tr>
+        <td>💚 <code>packages/@core/ui-kit/shadcn-ui/src/ui/dialog/DialogOverlay.vue</code></td>
+        <td style="text-align:right">9</td>
+        <td><span class="pill ok" data-t="riskNormal">OK</span></td>
+      </tr>
+      <tr>
+        <td>📘 <code>packages/@core/preferences/src/preferences.ts</code></td>
+        <td style="text-align:right">9</td>
+        <td><span class="pill ok" data-t="riskNormal">OK</span></td>
+      </tr>
+      <tr>
+        <td>💚 <code>packages/@core/ui-kit/form-ui/src/form-render/form-field.vue</code></td>
+        <td style="text-align:right">9</td>
+        <td><span class="pill ok" data-t="riskNormal">OK</span></td>
+      </tr>
+      <tr>
+        <td>📄 <code>packages/@core/preferences/__tests__/__snapshots__/config.test.ts.snap</code></td>
+        <td style="text-align:right">8</td>
+        <td><span class="pill ok" data-t="riskNormal">OK</span></td>
+      </tr>
+      <tr>
+        <td>⚙️ <code>.vscode/settings.json</code></td>
+        <td style="text-align:right">8</td>
+        <td><span class="pill ok" data-t="riskNormal">OK</span></td>
+      </tr></tbody>
+      </table>
+    </div>
+  
+</article>
+
+
+<article class="card">
+  <header>
+    <h2 data-t="velocityTitle">Accelerating or Dying</h2>
+    <span class="grade a">A</span>
+  </header>
+  <p class="desc" data-t="velocityDesc">Monthly commit count across the entire history. Watch for shape: drops, spikes, long declines.</p>
+  
+    <div class="summary-row">
+      <div class="stat"><span class="k" data-t="recentAvg">Recent avg (6mo)</span><span class="v">81.3</span></div>
+      <div class="stat"><span class="k" data-t="previousAvg">Previous avg</span><span class="v">38.7</span></div>
+      <div class="stat"><span class="k" data-t="ratio">Ratio</span><span class="v">210.3%</span></div>
+    </div>
+  <div class="chart-wrap"><svg class="chart" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 240" preserveAspectRatio="xMidYMid meet">
+    <line x1="36" x2="708" y1="162" y2="162" stroke="var(--chart-grid)" stroke-dasharray="2 4"/>
+            <text x="30" y="165" font-size="10" text-anchor="end" fill="var(--fg-muted)">38</text><line x1="36" x2="708" y1="112" y2="112" stroke="var(--chart-grid)" stroke-dasharray="2 4"/>
+            <text x="30" y="115" font-size="10" text-anchor="end" fill="var(--fg-muted)">77</text><line x1="36" x2="708" y1="62" y2="62" stroke="var(--chart-grid)" stroke-dasharray="2 4"/>
+            <text x="30" y="65" font-size="10" text-anchor="end" fill="var(--fg-muted)">115</text><line x1="36" x2="708" y1="12" y2="12" stroke="var(--chart-grid)" stroke-dasharray="2 4"/>
+            <text x="30" y="15" font-size="10" text-anchor="end" fill="var(--fg-muted)">153</text>
+    <rect x="32" y="191.08496732026143" width="8" height="20.915032679738562" fill="var(--accent)" rx="2"><title>2024-10: 16</title></rect><rect x="64" y="127.0326797385621" width="8" height="84.9673202614379" fill="var(--accent)" rx="2"><title>2024-11: 65</title></rect><rect x="96" y="95.66013071895424" width="8" height="116.33986928104576" fill="var(--accent)" rx="2"><title>2024-12: 89</title></rect><rect x="128" y="155.79084967320262" width="8" height="56.209150326797385" fill="var(--accent)" rx="2"><title>2025-01: 43</title></rect><rect x="160" y="155.79084967320262" width="8" height="56.209150326797385" fill="var(--accent)" rx="2"><title>2025-02: 43</title></rect><rect x="192" y="151.86928104575162" width="8" height="60.130718954248366" fill="var(--accent)" rx="2"><title>2025-03: 46</title></rect><rect x="224" y="124.41830065359477" width="8" height="87.58169934640523" fill="var(--accent)" rx="2"><title>2025-04: 67</title></rect><rect x="256" y="146.640522875817" width="8" height="65.359477124183" fill="var(--accent)" rx="2"><title>2025-05: 50</title></rect><rect x="288" y="180.62745098039215" width="8" height="31.372549019607842" fill="var(--accent)" rx="2"><title>2025-06: 24</title></rect><rect x="320" y="170.16993464052288" width="8" height="41.830065359477125" fill="var(--accent)" rx="2"><title>2025-07: 32</title></rect><rect x="352" y="183.24183006535947" width="8" height="28.75816993464052" fill="var(--accent)" rx="2"><title>2025-08: 22</title></rect><rect x="384" y="183.24183006535947" width="8" height="28.75816993464052" fill="var(--accent)" rx="2"><title>2025-09: 22</title></rect><rect x="416" y="167.55555555555554" width="8" height="44.44444444444444" fill="var(--accent)" rx="2"><title>2025-10: 34</title></rect><rect x="448" y="113.9607843137255" width="8" height="98.0392156862745" fill="var(--accent)" rx="2"><title>2025-11: 75</title></rect><rect x="480" y="176.70588235294116" width="8" height="35.294117647058826" fill="var(--accent)" rx="2"><title>2025-12: 27</title></rect><rect x="512" y="144.0261437908497" width="8" height="67.97385620915033" fill="var(--accent)" rx="2"><title>2026-01: 52</title></rect><rect x="544" y="150.56209150326796" width="8" height="61.43790849673203" fill="var(--accent)" rx="2"><title>2026-02: 47</title></rect><rect x="576" y="12" width="8" height="200" fill="var(--accent)" rx="2"><title>2026-03: 153</title></rect><rect x="608" y="72.13071895424838" width="8" height="139.86928104575162" fill="var(--accent)" rx="2"><title>2026-04: 107</title></rect><rect x="640" y="70.8235294117647" width="8" height="141.1764705882353" fill="var(--accent)" rx="2"><title>2026-05: 108</title></rect><rect x="672" y="133.5686274509804" width="8" height="78.43137254901961" fill="var(--accent)" rx="2"><title>2026-06: 60</title></rect><rect x="704" y="195.00653594771242" width="8" height="16.99346405228758" fill="var(--accent)" rx="2"><title>2026-07: 13</title></rect>
+    <polyline points="36.0,191.1 68.0,127.0 100.0,95.7 132.0,155.8 164.0,155.8 196.0,151.9 228.0,124.4 260.0,146.6 292.0,180.6 324.0,170.2 356.0,183.2 388.0,183.2 420.0,167.6 452.0,114.0 484.0,176.7 516.0,144.0 548.0,150.6 580.0,12.0 612.0,72.1 644.0,70.8 676.0,133.6 708.0,195.0" fill="none" stroke="var(--chart-2)" stroke-width="2" opacity="0.85"/>
+    <circle cx="36.0" cy="191.1" r="2.5" fill="var(--chart-2)"><title>2024-10: 16</title></circle><circle cx="68.0" cy="127.0" r="2.5" fill="var(--chart-2)"><title>2024-11: 65</title></circle><circle cx="100.0" cy="95.7" r="2.5" fill="var(--chart-2)"><title>2024-12: 89</title></circle><circle cx="132.0" cy="155.8" r="2.5" fill="var(--chart-2)"><title>2025-01: 43</title></circle><circle cx="164.0" cy="155.8" r="2.5" fill="var(--chart-2)"><title>2025-02: 43</title></circle><circle cx="196.0" cy="151.9" r="2.5" fill="var(--chart-2)"><title>2025-03: 46</title></circle><circle cx="228.0" cy="124.4" r="2.5" fill="var(--chart-2)"><title>2025-04: 67</title></circle><circle cx="260.0" cy="146.6" r="2.5" fill="var(--chart-2)"><title>2025-05: 50</title></circle><circle cx="292.0" cy="180.6" r="2.5" fill="var(--chart-2)"><title>2025-06: 24</title></circle><circle cx="324.0" cy="170.2" r="2.5" fill="var(--chart-2)"><title>2025-07: 32</title></circle><circle cx="356.0" cy="183.2" r="2.5" fill="var(--chart-2)"><title>2025-08: 22</title></circle><circle cx="388.0" cy="183.2" r="2.5" fill="var(--chart-2)"><title>2025-09: 22</title></circle><circle cx="420.0" cy="167.6" r="2.5" fill="var(--chart-2)"><title>2025-10: 34</title></circle><circle cx="452.0" cy="114.0" r="2.5" fill="var(--chart-2)"><title>2025-11: 75</title></circle><circle cx="484.0" cy="176.7" r="2.5" fill="var(--chart-2)"><title>2025-12: 27</title></circle><circle cx="516.0" cy="144.0" r="2.5" fill="var(--chart-2)"><title>2026-01: 52</title></circle><circle cx="548.0" cy="150.6" r="2.5" fill="var(--chart-2)"><title>2026-02: 47</title></circle><circle cx="580.0" cy="12.0" r="2.5" fill="var(--chart-2)"><title>2026-03: 153</title></circle><circle cx="612.0" cy="72.1" r="2.5" fill="var(--chart-2)"><title>2026-04: 107</title></circle><circle cx="644.0" cy="70.8" r="2.5" fill="var(--chart-2)"><title>2026-05: 108</title></circle><circle cx="676.0" cy="133.6" r="2.5" fill="var(--chart-2)"><title>2026-06: 60</title></circle><circle cx="708.0" cy="195.0" r="2.5" fill="var(--chart-2)"><title>2026-07: 13</title></circle>
+    <text x="36.0" y="232" font-size="10" text-anchor="middle" fill="var(--fg-muted)">2024-10</text><text x="132.0" y="232" font-size="10" text-anchor="middle" fill="var(--fg-muted)">2025-01</text><text x="228.0" y="232" font-size="10" text-anchor="middle" fill="var(--fg-muted)">2025-04</text><text x="324.0" y="232" font-size="10" text-anchor="middle" fill="var(--fg-muted)">2025-07</text><text x="420.0" y="232" font-size="10" text-anchor="middle" fill="var(--fg-muted)">2025-10</text><text x="516.0" y="232" font-size="10" text-anchor="middle" fill="var(--fg-muted)">2026-01</text><text x="612.0" y="232" font-size="10" text-anchor="middle" fill="var(--fg-muted)">2026-04</text><text x="708.0" y="232" font-size="10" text-anchor="middle" fill="var(--fg-muted)">2026-07</text>
+  </svg></div>
+</article>
+
+
+<article class="card">
+  <header>
+    <h2 data-t="firefightingTitle">Firefighting Frequency</h2>
+    <span class="grade b">B</span>
+  </header>
+  <p class="desc" data-t="firefightingDesc">Commits matching revert|hotfix|emergency|rollback. Frequent reverts suggest deploy-pipeline issues.</p>
+  
+    <div class="summary-row">
+      <div class="stat"><span class="k" data-t="totalEvents">Total events</span><span class="v">9</span></div>
+      <div class="stat"><span class="k" data-t="perMonth">Avg per month</span><span class="v">0.75</span></div>
+    </div>
+  <div class="chart-wrap"><svg class="chart" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 200" preserveAspectRatio="xMidYMid meet"><rect x="61.2" y="12.0" width="117.6" height="160.0" fill="var(--danger)" rx="2"><title>2025-11: 3</title></rect><rect x="229.2" y="65.3" width="117.6" height="106.7" fill="var(--danger)" rx="2"><title>2026-02: 2</title></rect><rect x="397.2" y="12.0" width="117.6" height="160.0" fill="var(--danger)" rx="2"><title>2026-03: 3</title></rect><rect x="565.2" y="118.7" width="117.6" height="53.3" fill="var(--danger)" rx="2"><title>2026-05: 1</title></rect><text x="120.0" y="192" font-size="10" text-anchor="middle" fill="var(--fg-muted)">2025-11</text><text x="288.0" y="192" font-size="10" text-anchor="middle" fill="var(--fg-muted)">2026-02</text><text x="456.0" y="192" font-size="10" text-anchor="middle" fill="var(--fg-muted)">2026-03</text><text x="624.0" y="192" font-size="10" text-anchor="middle" fill="var(--fg-muted)">2026-05</text></svg></div><div class="timeline">
+    <div class="ev">
+      <span class="hash">f5feddc</span>
+      <span class="date">2026-05-10</span>
+      <span class="subject">feat(@vben/plugins): tiptap 组件新增 maxHeight 属性支持及文档 (#7897)</span>
+    </div>
+    <div class="ev">
+      <span class="hash">bed97a8</span>
+      <span class="date">2026-03-19</span>
+      <span class="subject">revert: &quot;fix: sass-embedded@1.98.0 在 macOS 13 会直接崩 (#7692)&quot;</span>
+    </div>
+    <div class="ev">
+      <span class="hash">c48ee2a</span>
+      <span class="date">2026-03-14</span>
+      <span class="subject">revert: restore vscode extensions comments</span>
+    </div>
+    <div class="ev">
+      <span class="hash">8fd6bf4</span>
+      <span class="date">2026-03-14</span>
+      <span class="subject">revert: restore px-based calc utilities</span>
+    </div>
+    <div class="ev">
+      <span class="hash">7d04b60</span>
+      <span class="date">2026-02-10</span>
+      <span class="subject">fix: correct updateDate to updateData in the echarts hook (#7538)</span>
+    </div>
+    <div class="ev">
+      <span class="hash">3aee283</span>
+      <span class="date">2026-02-08</span>
+      <span class="subject">Revert &quot;feat(web): cancel `pnpm-lock.yaml` submission&quot;</span>
+    </div>
+    <div class="ev">
+      <span class="hash">772529e</span>
+      <span class="date">2025-11-14</span>
+      <span class="subject">fix: rollback zod-defaults version to 0.1.3 (#6925)</span>
+    </div>
+    <div class="ev">
+      <span class="hash">348c977</span>
+      <span class="date">2025-11-03</span>
+      <span class="subject">Revert &quot;refactor(jwt): 更新 JWT 工具函数实现方式 (#6869)&quot;</span>
+    </div>
+    <div class="ev">
+      <span class="hash">c7c3904</span>
+      <span class="date">2025-11-03</span>
+      <span class="subject">feat: add theme-aware logo support via optional sourceDark configuration (#6866)</span>
+    </div></div>
+</article>
+
+
+<article class="card">
+  <header>
+    <h2 data-t="crossTitle">Cross-Risk Files</h2>
+    
+  </header>
+  <p class="desc" data-t="crossDesc">Files appearing in BOTH top churn and top bug lists — your highest-risk code.</p>
+  
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th data-t="fileLabel">File</th><th style="text-align:right" data-t="churn">Churn</th><th style="text-align:right" data-t="bugs">Bugs</th><th data-t="riskLabel">Risk</th></tr></thead>
+        <tbody>
+    <tr>
+      <td>⚙️ <code>pnpm-workspace.yaml</code></td>
+      <td style="text-align:right">100</td>
+      <td style="text-align:right">21</td>
+      <td><span class="pill critical" data-t="riskCritical">CRITICAL</span></td>
+    </tr>
+    <tr>
+      <td>⚙️ <code>package.json</code></td>
+      <td style="text-align:right">56</td>
+      <td style="text-align:right">17</td>
+      <td><span class="pill critical" data-t="riskCritical">CRITICAL</span></td>
+    </tr>
+    <tr>
+      <td>📘 <code>packages/@core/ui-kit/form-ui/src/types.ts</code></td>
+      <td style="text-align:right">24</td>
+      <td style="text-align:right">15</td>
+      <td><span class="pill critical" data-t="riskCritical">CRITICAL</span></td>
+    </tr>
+    <tr>
+      <td>💚 <code>packages/@core/ui-kit/popup-ui/src/modal/modal.vue</code></td>
+      <td style="text-align:right">20</td>
+      <td style="text-align:right">14</td>
+      <td><span class="pill critical" data-t="riskCritical">CRITICAL</span></td>
+    </tr>
+    <tr>
+      <td>💚 <code>packages/@core/ui-kit/layout-ui/src/components/layout-sidebar.vue</code></td>
+      <td style="text-align:right">19</td>
+      <td style="text-align:right">15</td>
+      <td><span class="pill warning" data-t="riskWarning">WARNING</span></td>
+    </tr></tbody>
+      </table>
+    </div>
+  
+</article>
+
+</main>
+<footer>Generated by git-xray · methodology inspired by Ally Piechowski</footer>
+<script>
+(function() {
+  var root = document.documentElement;
+  // Initialize root font attribute. We can't put data-font on <html> in the
+  // static markup because querySelectorAll('[data-font]') would also match
+  // <html> and clobber its textContent (turning the page into raw text).
+  root.setAttribute('data-font', 'default');
+  var data = {"meta":{"path":"/Users/david/i/vue-vben-admin","name":"vben-admin-monorepo","headShort":"8b7c245bc","headFull":"8b7c245bc7a2346764d98d26003a2faf67a98182","generatedAt":"2026-07-11T10:02:32.181Z","generatedAtLocal":"2026-07-11 18:02","toolVersion":"0.0.2","elapsedMs":600},"churn":{"files":[{"file":"pnpm-workspace.yaml","count":100},{"file":"package.json","count":56},{"file":"packages/@core/ui-kit/form-ui/src/types.ts","count":24},{"file":"playground/src/adapter/component/index.ts","count":21},{"file":"packages/@core/ui-kit/popup-ui/src/modal/modal.vue","count":20},{"file":"packages/effects/layouts/src/widgets/preferences/preferences-drawer.vue","count":20},{"file":"packages/@core/ui-kit/layout-ui/src/components/layout-sidebar.vue","count":19},{"file":"packages/@core/preferences/src/config.ts","count":18},{"file":"packages/@core/preferences/src/types.ts","count":18},{"file":".vscode/settings.json","count":17},{"file":"packages/effects/plugins/src/vxe-table/use-vxe-grid.vue","count":17},{"file":"packages/@core/ui-kit/shadcn-ui/src/ui/tree/tree.vue","count":16},{"file":"packages/@core/ui-kit/layout-ui/src/vben-layout.vue","count":15},{"file":"packages/effects/layouts/src/basic/layout.vue","count":15},{"file":"scripts/vsh/src/lint/index.ts","count":15},{"file":"internal/lint-configs/eslint-config/package.json","count":15},{"file":"internal/vite-config/package.json","count":15},{"file":"packages/@core/ui-kit/form-ui/src/form-render/form-field.vue","count":15},{"file":"packages/@core/preferences/__tests__/__snapshots__/config.test.ts.snap","count":14},{"file":"apps/web-antd/src/adapter/component/index.ts","count":14}],"totalFiles":1281,"totalCommits":650,"since":"1 year ago"},"contributors":{"contributors":[{"name":"Netfan","email":"netfan@foxmail.com","commits":244,"share":0.34173669467787116,"active":false},{"name":"layhuts","email":"layhuts@163.com","commits":27,"share":0.037815126050420166,"active":true},{"name":"dullathanol","email":"327533967@qq.com","commits":24,"share":0.03361344537815126,"active":true},{"name":"vben","email":"ann.vben@gmail.com","commits":21,"share":0.029411764705882353,"active":true},{"name":"zhongming4762","email":"zhongming4762@hotmail.com","commits":18,"share":0.025210084033613446,"active":true},{"name":"wyc001122","email":"498040880@qq.com","commits":15,"share":0.02100840336134454,"active":false},{"name":"JyQAQ","email":"45193678+jyqwq@users.noreply.github.com","commits":14,"share":0.0196078431372549,"active":true},{"name":"橙子","email":"126167116+caodachen@users.noreply.github.com","commits":12,"share":0.01680672268907563,"active":true},{"name":"xingyu","email":"xingyu4j@vip.qq.com","commits":10,"share":0.014005602240896359,"active":true},{"name":"zoumingjun","email":"846027729@qq.com","commits":10,"share":0.014005602240896359,"active":true},{"name":"Li Kui","email":"90845831+likui628@users.noreply.github.com","commits":10,"share":0.014005602240896359,"active":false},{"name":"Arthur Darkstone","email":"arthurlli@qq.com","commits":9,"share":0.012605042016806723,"active":false},{"name":"afe1","email":"2279948211@qq.com","commits":8,"share":0.011204481792717087,"active":true},{"name":"dependabot[bot]","email":"49699333+dependabot[bot]@users.noreply.github.com","commits":8,"share":0.011204481792717087,"active":true},{"name":"金毛88","email":"jinmao88@qq.com","commits":7,"share":0.00980392156862745,"active":true},{"name":"ppxb","email":"317842449@qq.com","commits":7,"share":0.00980392156862745,"active":true},{"name":"Caisin","email":"kaixing622@qq.com","commits":6,"share":0.008403361344537815,"active":true},{"name":"LinaBell","email":"15891557205@163.com","commits":6,"share":0.008403361344537815,"active":false},{"name":"huangxiaomin","email":"DesignHhuang@users.noreply.github.com","commits":6,"share":0.008403361344537815,"active":false},{"name":"雪忆天堂","email":"1455668754@qq.com","commits":6,"share":0.008403361344537815,"active":true},{"name":"米山","email":"17726957223@189.cn","commits":6,"share":0.008403361344537815,"active":false},{"name":"谦元吉","email":"87116441+qianYuanJ@users.noreply.github.com","commits":6,"share":0.008403361344537815,"active":false},{"name":"过冬","email":"67056916+dullathanol@users.noreply.github.com","commits":6,"share":0.008403361344537815,"active":true},{"name":"Copilot","email":"198982749+Copilot@users.noreply.github.com","commits":5,"share":0.0070028011204481795,"active":false},{"name":"lmx","email":"2538381255@qq.com","commits":5,"share":0.0070028011204481795,"active":true},{"name":"陆伯言","email":"104855611+maoxuner@users.noreply.github.com","commits":5,"share":0.0070028011204481795,"active":true},{"name":"Akuria","email":"46207353+Akur1a@users.noreply.github.com","commits":4,"share":0.0056022408963585435,"active":true},{"name":"AxiosLeo","email":"13862149+AxiosLeo@users.noreply.github.com","commits":4,"share":0.0056022408963585435,"active":true},{"name":"PanFu","email":"panfuy@hotmail.com","commits":4,"share":0.0056022408963585435,"active":true},{"name":"anyup","email":"85225562+anyup@users.noreply.github.com","commits":4,"share":0.0056022408963585435,"active":false},{"name":"boisduval","email":"sniksil@126.com","commits":4,"share":0.0056022408963585435,"active":true},{"name":"chenweiran","email":"cwr0401@gmail.com","commits":4,"share":0.0056022408963585435,"active":false},{"name":"leo","email":"gyy137145@163.com","commits":4,"share":0.0056022408963585435,"active":true},{"name":"yuan.ji","email":"961999367@qq.com","commits":4,"share":0.0056022408963585435,"active":true},{"name":"yuhengshen","email":"yuhengshen@qq.com","commits":4,"share":0.0056022408963585435,"active":true},{"name":"墨苒孤","email":"67958995+RanGuMo@users.noreply.github.com","commits":4,"share":0.0056022408963585435,"active":true},{"name":"Bin","email":"fuwb0407@gmail.com","commits":3,"share":0.004201680672268907,"active":true},{"name":"MistyMoon","email":"33083971+MistyMoonR@users.noreply.github.com","commits":3,"share":0.004201680672268907,"active":true},{"name":"RanMaoting","email":"62940878+RanMaoting@users.noreply.github.com","commits":3,"share":0.004201680672268907,"active":false},{"name":"Saleri","email":"1665800095@qq.com","commits":3,"share":0.004201680672268907,"active":true},{"name":"Svend","email":"svend.jin@gmail.com","commits":3,"share":0.004201680672268907,"active":false},{"name":"aonoa","email":"32682251+aonoa@users.noreply.github.com","commits":3,"share":0.004201680672268907,"active":false},{"name":"chewenye","email":"15818182980@163.com","commits":3,"share":0.004201680672268907,"active":false},{"name":"layhuts","email":"45724118+LayHuts@users.noreply.github.com","commits":3,"share":0.004201680672268907,"active":true},{"name":"luoqiz","email":"luoqiangzheng@gmail.com","commits":3,"share":0.004201680672268907,"active":true},{"name":"shixi","email":"2375768084@qq.com","commits":3,"share":0.004201680672268907,"active":false},{"name":"vince","email":"vince292007@gmail.com","commits":3,"share":0.004201680672268907,"active":false},{"name":"zyy","email":"532612154@qq.com","commits":3,"share":0.004201680672268907,"active":false},{"name":"jinmao88","email":"50581550+jinmao88@users.noreply.github.com","commits":2,"share":0.0028011204481792717,"active":true},{"name":"Evan","email":"454002679@qq.com","commits":2,"share":0.0028011204481792717,"active":true},{"name":"HaroldZhangCode91","email":"15901773529@163.com","commits":2,"share":0.0028011204481792717,"active":true},{"name":"Joy","email":"49052328+AnonymXXX@users.noreply.github.com","commits":2,"share":0.0028011204481792717,"active":false},{"name":"Ken Hai","email":"wobunengmeiyou_ni@163.com","commits":2,"share":0.0028011204481792717,"active":false},{"name":"Leo","email":"leo@xuebin.me","commits":2,"share":0.0028011204481792717,"active":true},{"name":"Lmx1220","email":"57341790+Lmx1220@users.noreply.github.com","commits":2,"share":0.0028011204481792717,"active":true},{"name":"Sun","email":"wanglt-123@qq.com","commits":2,"share":0.0028011204481792717,"active":true},{"name":"Utopia","email":"greatauk11@gmail.com","commits":2,"share":0.0028011204481792717,"active":false},{"name":"XiaoHetitu","email":"38452227+XiaoHeitu@users.noreply.github.com","commits":2,"share":0.0028011204481792717,"active":false},{"name":"ali-pay","email":"smartisanmail@gmail.com","commits":2,"share":0.0028011204481792717,"active":false},{"name":"broBinChen","email":"139344558+broBinChen@users.noreply.github.com","commits":2,"share":0.0028011204481792717,"active":false},{"name":"dream-weave","email":"62940878+dream-weave@users.noreply.github.com","commits":2,"share":0.0028011204481792717,"active":true},{"name":"gotounix","email":"zengqiu2002@163.com","commits":2,"share":0.0028011204481792717,"active":true},{"name":"littlesparklet","email":"112364429+littlesparklet@users.noreply.github.com","commits":2,"share":0.0028011204481792717,"active":false},{"name":"mew","email":"88119911+doraemonxxx@users.noreply.github.com","commits":2,"share":0.0028011204481792717,"active":true},{"name":"moil-xm","email":"64048303+moil-xm@users.noreply.github.com","commits":2,"share":0.0028011204481792717,"active":true},{"name":"pangyajun123","email":"284390918@qq.com","commits":2,"share":0.0028011204481792717,"active":false},{"name":"pingsanddoss","email":"33388958+pingsanddoss@users.noreply.github.com","commits":2,"share":0.0028011204481792717,"active":false},{"name":"sqchen","email":"9110848@qq.com","commits":2,"share":0.0028011204481792717,"active":false},{"name":"xue-jn","email":"40727429+xue-jn@users.noreply.github.com","commits":2,"share":0.0028011204481792717,"active":false},{"name":"2ylllll","email":"495141992@qq.com","commits":1,"share":0.0014005602240896359,"active":true},{"name":"Harold  Zhang","email":"HZhang@datacolor.com","commits":1,"share":0.0014005602240896359,"active":true},{"name":" panda7","email":"csq6266@gmail.com","commits":1,"share":0.0014005602240896359,"active":false},{"name":"zwtvip","email":"zwtvip@qq.com","commits":1,"share":0.0014005602240896359,"active":false},{"name":"programmer","email":"kuchaguangjie@gmail.com","commits":1,"share":0.0014005602240896359,"active":true},{"name":"lghuahua","email":"877312980@qq.com","commits":1,"share":0.0014005602240896359,"active":false},{"name":"1302岁的龙猫","email":"oracle128g@gmail.com","commits":1,"share":0.0014005602240896359,"active":false},{"name":"1302岁的龙猫","email":"originzhao@163.com","commits":1,"share":0.0014005602240896359,"active":false},{"name":"928646789","email":"30285928+928646789@users.noreply.github.com","commits":1,"share":0.0014005602240896359,"active":true},{"name":"Aliner","email":"108054754+abcd0f@users.noreply.github.com","commits":1,"share":0.0014005602240896359,"active":true},{"name":"Anonymouscen","email":"54276305+Anonymouscen@users.noreply.github.com","commits":1,"share":0.0014005602240896359,"active":true},{"name":"Bin","email":"106022674+ffgenius@users.noreply.github.com","commits":1,"share":0.0014005602240896359,"active":true},{"name":"Bk201","email":"huakaiquan@qq.com","commits":1,"share":0.0014005602240896359,"active":true},{"name":"BobbyCheng","email":"59609206+9ilfoyl3@users.noreply.github.com","commits":1,"share":0.0014005602240896359,"active":false},{"name":"Bryan Qiu","email":"qfifteen@163.com","commits":1,"share":0.0014005602240896359,"active":true},{"name":"CG.gatspy","email":"gatspy.if@gmail.com","commits":1,"share":0.0014005602240896359,"active":false},{"name":"Cup_Of_Bread","email":"508087823@qq.com","commits":1,"share":0.0014005602240896359,"active":false},{"name":"Gahotx","email":"53534938+Gahotx@users.noreply.github.com","commits":1,"share":0.0014005602240896359,"active":false},{"name":"HaHa","email":"110732547+bprag@users.noreply.github.com","commits":1,"share":0.0014005602240896359,"active":false},{"name":"HamWong","email":"81913444+hamwong233@users.noreply.github.com","commits":1,"share":0.0014005602240896359,"active":false},{"name":"Jeff","email":"739175122@qq.com","commits":1,"share":0.0014005602240896359,"active":false},{"name":"Jefsky Wong","email":"hwj3344@hotmail.com","commits":1,"share":0.0014005602240896359,"active":true},{"name":"Joeshu","email":"1442702103@qq.com","commits":1,"share":0.0014005602240896359,"active":false},{"name":"John","email":"maiduobeta@gmail.com","commits":1,"share":0.0014005602240896359,"active":false},{"name":"Journey","email":"52627267+chengazhen@users.noreply.github.com","commits":1,"share":0.0014005602240896359,"active":false},{"name":"Leeson","email":"1329307562@qq.com","commits":1,"share":0.0014005602240896359,"active":false},{"name":"Leo Caan (陈栋)","email":"leocaan@icloud.com","commits":1,"share":0.0014005602240896359,"active":true},{"name":"Lgf","email":"2246221508@qq.com","commits":1,"share":0.0014005602240896359,"active":true},{"name":"Lin","email":"linlccc@163.com","commits":1,"share":0.0014005602240896359,"active":true},{"name":"MRSWC","email":"1628875709@qq.com","commits":1,"share":0.0014005602240896359,"active":true},{"name":"Mintnoii","email":"scorpio971028@gmail.com","commits":1,"share":0.0014005602240896359,"active":false},{"name":"Mr. Xie","email":"117615674+PdxLook@users.noreply.github.com","commits":1,"share":0.0014005602240896359,"active":true},{"name":"Noah Lan","email":"6995syu@163.com","commits":1,"share":0.0014005602240896359,"active":true},{"name":"OldDriver","email":"olddrivero.king@qq.com","commits":1,"share":0.0014005602240896359,"active":false},{"name":"Olexandr88","email":"radole1203@gmail.com","commits":1,"share":0.0014005602240896359,"active":false},{"name":"PIPEDREA_WZJ","email":"46663175+WZJvearyfunny@users.noreply.github.com","commits":1,"share":0.0014005602240896359,"active":false},{"name":"Qiu","email":"57087356+Child-qjj@users.noreply.github.com","commits":1,"share":0.0014005602240896359,"active":true},{"name":"Rascal-Coder","email":"147695121+Rascal-Coder@users.noreply.github.com","commits":1,"share":0.0014005602240896359,"active":false},{"name":"Reese Wellin","email":"lqmrtcrr@gmail.com","commits":1,"share":0.0014005602240896359,"active":true},{"name":"Rex","email":"johnyuanhao@outlook.com","commits":1,"share":0.0014005602240896359,"active":false},{"name":"Saleri","email":"64312456+SaleriHQ@users.noreply.github.com","commits":1,"share":0.0014005602240896359,"active":true},{"name":"Stephen Chang","email":"qalong@gmail.com","commits":1,"share":0.0014005602240896359,"active":false},{"name":"Trivikram Kamat","email":"16024985+trivikr@users.noreply.github.com","commits":1,"share":0.0014005602240896359,"active":false},{"name":"Wu Clan","email":"jianhengwu0407@gmail.com","commits":1,"share":0.0014005602240896359,"active":true},{"name":"Xiaoyu","email":"614422099@QQ.com","commits":1,"share":0.0014005602240896359,"active":false},{"name":"Yanghai.Lin","email":"yanghai.lin.yhl@gmail.com","commits":1,"share":0.0014005602240896359,"active":true},{"name":"booshaw","email":"34653030@qq.com","commits":1,"share":0.0014005602240896359,"active":false},{"name":"cdc","email":"3589045787@qq.com","commits":1,"share":0.0014005602240896359,"active":true},{"name":"chen-d-yu","email":"100754700+chen-d-yu@users.noreply.github.com","commits":1,"share":0.0014005602240896359,"active":false},{"name":"clddup","email":"105873086+clddup@users.noreply.github.com","commits":1,"share":0.0014005602240896359,"active":false},{"name":"eamd-wq","email":"58057732+eamd-wq@users.noreply.github.com","commits":1,"share":0.0014005602240896359,"active":false},{"name":"fourteendp","email":"53899166+fourteendp@users.noreply.github.com","commits":1,"share":0.0014005602240896359,"active":false},{"name":"guoqiangui","email":"45208340+guoqiangui@users.noreply.github.com","commits":1,"share":0.0014005602240896359,"active":true},{"name":"gxc685","email":"72901990+gxc685@users.noreply.github.com","commits":1,"share":0.0014005602240896359,"active":false},{"name":"han","email":"83765419+han1548772930@users.noreply.github.com","commits":1,"share":0.0014005602240896359,"active":true},{"name":"handsomeFu","email":"fzq980219@gmail.com","commits":1,"share":0.0014005602240896359,"active":false},{"name":"hiss","email":"zhb410181@163.com","commits":1,"share":0.0014005602240896359,"active":true},{"name":"huangfe1","email":"505860922@qq.com","commits":1,"share":0.0014005602240896359,"active":false},{"name":"huanghezhen","email":"827283849@qq.com","commits":1,"share":0.0014005602240896359,"active":false},{"name":"ijackwu","email":"ijackwu365@gmail.com","commits":1,"share":0.0014005602240896359,"active":false},{"name":"jackhoo(胡彪)","email":"1679575151@qq.com","commits":1,"share":0.0014005602240896359,"active":false},{"name":"jasonz18","email":"jasonz18@163.com","commits":1,"share":0.0014005602240896359,"active":false},{"name":"jsxz","email":"scgs0121618@163.com","commits":1,"share":0.0014005602240896359,"active":false},{"name":"leizhiyou","email":"34797441+leizhiyou@users.noreply.github.com","commits":1,"share":0.0014005602240896359,"active":false},{"name":"lidongcheng88","email":"45726708+lidongcheng88@users.noreply.github.com","commits":1,"share":0.0014005602240896359,"active":false},{"name":"liqiang0330","email":"liqiang0330@gmail.com","commits":1,"share":0.0014005602240896359,"active":false},{"name":"lw567","email":"535847787@qq.com","commits":1,"share":0.0014005602240896359,"active":false},{"name":"lztb","email":"lztbwlkj@gmail.com","commits":1,"share":0.0014005602240896359,"active":false},{"name":"oc","email":"oc@yi.team","commits":1,"share":0.0014005602240896359,"active":false},{"name":"richex-cn","email":"i@richex.cn","commits":1,"share":0.0014005602240896359,"active":false},{"name":"ryomahan","email":"ryomahan1996@gmail.com","commits":1,"share":0.0014005602240896359,"active":false},{"name":"shierd","email":"lmblackh@gmail.com","commits":1,"share":0.0014005602240896359,"active":false},{"name":"someone-cool","email":"54130329+aha-weikai@users.noreply.github.com","commits":1,"share":0.0014005602240896359,"active":false},{"name":"superdl1996","email":"44232067+superdl1996@users.noreply.github.com","commits":1,"share":0.0014005602240896359,"active":false},{"name":"tikitoki","email":"zc19941011@gmail.com","commits":1,"share":0.0014005602240896359,"active":true},{"name":"vem","email":"yq.zhou@hotmail.com","commits":1,"share":0.0014005602240896359,"active":false},{"name":"vent","email":"101112169+ventupx@users.noreply.github.com","commits":1,"share":0.0014005602240896359,"active":false},{"name":"xueyang","email":"4927411+sekaiai@users.noreply.github.com","commits":1,"share":0.0014005602240896359,"active":false},{"name":"yingzi2019","email":"54906337+yingzi2019@users.noreply.github.com","commits":1,"share":0.0014005602240896359,"active":false},{"name":"yshbyy","email":"401973712@qq.com","commits":1,"share":0.0014005602240896359,"active":true},{"name":"yuh","email":"yuhldr@qq.com","commits":1,"share":0.0014005602240896359,"active":false},{"name":"zengmingyong","email":"42780443+zengmingyong@users.noreply.github.com","commits":1,"share":0.0014005602240896359,"active":false},{"name":"zhaoweijie","email":"49708264+zhaoweijie1213@users.noreply.github.com","commits":1,"share":0.0014005602240896359,"active":false},{"name":"zhb410181","email":"76678965+zhb410181@users.noreply.github.com","commits":1,"share":0.0014005602240896359,"active":true},{"name":"zhenghaoyang24","email":"95458562+zhenghaoyang24@users.noreply.github.com","commits":1,"share":0.0014005602240896359,"active":false},{"name":"zhou","email":"31909825+zhouOB@users.noreply.github.com","commits":1,"share":0.0014005602240896359,"active":false},{"name":"zhouda1fu","email":"825542578@qq.com","commits":1,"share":0.0014005602240896359,"active":false},{"name":"zyf0624","email":"0624afe1@gmail.com","commits":1,"share":0.0014005602240896359,"active":false},{"name":"吉远","email":"jiyuan@txhmo.com","commits":1,"share":0.0014005602240896359,"active":true},{"name":"曾兴顺","email":"101850164+JeromeTseng@users.noreply.github.com","commits":1,"share":0.0014005602240896359,"active":true},{"name":"李轻舟","email":"30641714+lqzo@users.noreply.github.com","commits":1,"share":0.0014005602240896359,"active":false},{"name":"王文庭","email":"31032745+wangwenting-dev@users.noreply.github.com","commits":1,"share":0.0014005602240896359,"active":false},{"name":"眼圈发黑","email":"49627376+yanquanfahei@users.noreply.github.com","commits":1,"share":0.0014005602240896359,"active":false},{"name":"菠萝吹雪","email":"58333667+yuguaa@users.noreply.github.com","commits":1,"share":0.0014005602240896359,"active":false},{"name":"螃蟹","email":"52234099+pangxie231@users.noreply.github.com","commits":1,"share":0.0014005602240896359,"active":false}],"totalCommits":714,"topShare":0.34173669467787116,"activeCount":70,"totalCount":164,"grade":"A"},"bugs":{"files":[{"file":"pnpm-workspace.yaml","count":21},{"file":"package.json","count":17},{"file":"packages/@core/ui-kit/layout-ui/src/components/layout-sidebar.vue","count":15},{"file":"packages/@core/ui-kit/form-ui/src/types.ts","count":15},{"file":"packages/@core/ui-kit/popup-ui/src/modal/modal.vue","count":14},{"file":"packages/@core/ui-kit/shadcn-ui/src/ui/tree/tree.vue","count":14},{"file":"packages/effects/layouts/src/basic/layout.vue","count":11},{"file":"packages/@core/ui-kit/shadcn-ui/src/ui/dialog/DialogContent.vue","count":11},{"file":"packages/effects/plugins/src/vxe-table/use-vxe-grid.vue","count":11},{"file":"packages/@core/ui-kit/layout-ui/src/vben-layout.vue","count":10},{"file":"packages/@core/ui-kit/shadcn-ui/src/components/collapsible/collapsible-params.vue","count":10},{"file":"packages/effects/layouts/src/widgets/preferences/preferences-drawer.vue","count":10},{"file":"packages/@core/ui-kit/tabs-ui/src/components/tabs-chrome/tabs.vue","count":10},{"file":"packages/@core/preferences/src/config.ts","count":9},{"file":"packages/@core/preferences/src/types.ts","count":9},{"file":"packages/@core/ui-kit/shadcn-ui/src/ui/dialog/DialogOverlay.vue","count":9},{"file":"packages/@core/preferences/src/preferences.ts","count":9},{"file":"packages/@core/ui-kit/form-ui/src/form-render/form-field.vue","count":9},{"file":"packages/@core/preferences/__tests__/__snapshots__/config.test.ts.snap","count":8},{"file":".vscode/settings.json","count":8}],"totalCommits":1,"since":"1 year ago"},"velocity":{"history":[{"month":"2024-10","count":16},{"month":"2024-11","count":65},{"month":"2024-12","count":89},{"month":"2025-01","count":43},{"month":"2025-02","count":43},{"month":"2025-03","count":46},{"month":"2025-04","count":67},{"month":"2025-05","count":50},{"month":"2025-06","count":24},{"month":"2025-07","count":32},{"month":"2025-08","count":22},{"month":"2025-09","count":22},{"month":"2025-10","count":34},{"month":"2025-11","count":75},{"month":"2025-12","count":27},{"month":"2026-01","count":52},{"month":"2026-02","count":47},{"month":"2026-03","count":153},{"month":"2026-04","count":107},{"month":"2026-05","count":108},{"month":"2026-06","count":60},{"month":"2026-07","count":13}],"recentAvg":81.33333333333333,"previousAvg":38.666666666666664,"ratio":2.103448275862069,"grade":"A"},"firefighting":{"events":[{"hash":"f5feddc","subject":"feat(@vben/plugins): tiptap 组件新增 maxHeight 属性支持及文档 (#7897)","date":"2026-05-10T10:38:21+08:00","month":"2026-05"},{"hash":"bed97a8","subject":"revert: \"fix: sass-embedded@1.98.0 在 macOS 13 会直接崩 (#7692)\"","date":"2026-03-19T09:02:11+08:00","month":"2026-03"},{"hash":"c48ee2a","subject":"revert: restore vscode extensions comments","date":"2026-03-14T19:38:09+08:00","month":"2026-03"},{"hash":"8fd6bf4","subject":"revert: restore px-based calc utilities","date":"2026-03-14T18:36:31+08:00","month":"2026-03"},{"hash":"7d04b60","subject":"fix: correct updateDate to updateData in the echarts hook (#7538)","date":"2026-02-10T11:19:45+08:00","month":"2026-02"},{"hash":"3aee283","subject":"Revert \"feat(web): cancel `pnpm-lock.yaml` submission\"","date":"2026-02-08T23:14:31+08:00","month":"2026-02"},{"hash":"772529e","subject":"fix: rollback zod-defaults version to 0.1.3 (#6925)","date":"2025-11-14T16:16:45+08:00","month":"2025-11"},{"hash":"348c977","subject":"Revert \"refactor(jwt): 更新 JWT 工具函数实现方式 (#6869)\"","date":"2025-11-03T19:34:45+08:00","month":"2025-11"},{"hash":"c7c3904","subject":"feat: add theme-aware logo support via optional sourceDark configuration (#6866)","date":"2025-11-03T13:07:36+08:00","month":"2025-11"}],"byMonth":[{"month":"2025-11","count":3},{"month":"2026-02","count":2},{"month":"2026-03","count":3},{"month":"2026-05","count":1}],"perMonthAvg":0.75,"grade":"B"},"cross":{"critical":[{"file":"pnpm-workspace.yaml","churnCount":100,"bugCount":21,"risk":"critical"},{"file":"package.json","churnCount":56,"bugCount":17,"risk":"critical"},{"file":"packages/@core/ui-kit/form-ui/src/types.ts","churnCount":24,"bugCount":15,"risk":"critical"},{"file":"packages/@core/ui-kit/popup-ui/src/modal/modal.vue","churnCount":20,"bugCount":14,"risk":"critical"}],"warning":[{"file":"packages/@core/ui-kit/layout-ui/src/components/layout-sidebar.vue","churnCount":19,"bugCount":15,"risk":"warning"}]}};
+  var dict = {"en":{"title":"git-xray report","subtitle":"Five git commands that diagnose a new codebase before you open a single file.","generatedAt":"Generated at","repo":"Repository","head":"HEAD","version":"Tool version","elapsed":"Elapsed","themeToggle":"Toggle theme","langToggle":"中文 / EN","fontSmall":"A−","fontDefault":"A","fontLarge":"A+","lineCompact":"Compact","lineDefault":"Standard","lineLoose":"Loose","churnTitle":"Churn Hotspots","churnDesc":"Most-changed files in the analyzed window. The file at the top is almost always the one people warn you about.","contributorsTitle":"Who Built This","contributorsDesc":"Contributors ranked by commit count, cross-referenced against a recent 6-month activity window.","bugsTitle":"Where Do Bugs Cluster","bugsDesc":"Files that appear in commits with bug-related keywords (fix|bug|broken). Compare against churn hotspots above.","velocityTitle":"Accelerating or Dying","velocityDesc":"Monthly commit count across the entire history. Watch for shape: drops, spikes, long declines.","firefightingTitle":"Firefighting Frequency","firefightingDesc":"Commits matching revert|hotfix|emergency|rollback. Frequent reverts suggest deploy-pipeline issues.","crossTitle":"Cross-Risk Files","crossDesc":"Files appearing in BOTH top churn and top bug lists — your highest-risk code.","gradeA":"A","gradeB":"B","gradeC":"C","topShare":"Top share","activeRatio":"Active (6mo)","recentAvg":"Recent avg (6mo)","previousAvg":"Previous avg","perMonth":"Avg per month","totalEvents":"Total events","criticalFiles":"Critical","warningFiles":"Warning","noIssues":"No overlapping risk files. Healthy signal.","noData":"No data in this window.","fileLabel":"File","countLabel":"Commits","dateLabel":"Date","hashLabel":"Hash","subjectLabel":"Subject","monthLabel":"Month","commitsLabel":"Commits","riskCritical":"CRITICAL","riskWarning":"WARNING","riskNormal":"OK","footerNote":"Generated by git-xray · methodology inspired by Ally Piechowski"},"zh":{"title":"git-xray 报告","subtitle":"打开任何代码之前，先用 5 条 git 命令诊断一个新代码库。","generatedAt":"生成时间","repo":"仓库","head":"当前提交","version":"工具版本","elapsed":"耗时","themeToggle":"切换主题","langToggle":"EN / 中文","fontSmall":"A−","fontDefault":"A","fontLarge":"A+","lineCompact":"紧凑","lineDefault":"标准","lineLoose":"宽松","churnTitle":"高频变更文件","churnDesc":"分析窗口内变更次数最多的文件。最上面的几乎总是别人提醒你\"小心点\"的那个。","contributorsTitle":"谁构建了它","contributorsDesc":"按提交数排名的贡献者，并与最近 6 个月的活跃窗口交叉对比。","bugsTitle":"Bug 聚集地","bugsDesc":"出现在含 fix|bug|broken 关键字的提交中的文件。请与上方的变更热点对照。","velocityTitle":"加速还是衰退","velocityDesc":"整个历史中按月统计的提交数。注意形状：骤降、突发高峰、长期下滑。","firefightingTitle":"救火频率","firefightingDesc":"匹配 revert|hotfix|emergency|rollback 的提交。频繁回滚通常暗示部署流程问题。","crossTitle":"交叉风险文件","crossDesc":"同时出现在高频变更和 Bug 列表中的文件 —— 风险最高的代码。","gradeA":"A","gradeB":"B","gradeC":"C","topShare":"头部占比","activeRatio":"活跃贡献者（近 6 个月）","recentAvg":"近 6 个月平均","previousAvg":"前 6 个月平均","perMonth":"月均事件","totalEvents":"事件总数","criticalFiles":"严重","warningFiles":"警告","noIssues":"没有交叉风险文件，信号健康。","noData":"该窗口内无数据。","fileLabel":"文件","countLabel":"提交数","dateLabel":"日期","hashLabel":"哈希","subjectLabel":"主题","monthLabel":"月份","commitsLabel":"提交数","riskCritical":"严重","riskWarning":"警告","riskNormal":"正常","footerNote":"由 git-xray 生成 · 方法论受 Ally Piechowski 启发"}};
+  var currentLang = 'en';
+
+  // Inline translations for items rendered with literal text in markup.
+  var inline = {
+    en: { riskLabel: 'Risk', legendActive: '🟢 Active (last 6 mo)', legendInactive: '⚫ Inactive', ratio: 'Ratio', churn: 'Churn', bugs: 'Bugs' },
+    zh: { riskLabel: '风险', legendActive: '🟢 近 6 个月活跃', legendInactive: '⚫ 不活跃', ratio: '比值', churn: '变更频次', bugs: 'Bug 次数' }
+  };
+
+  function setLang(lang) {
+    currentLang = lang;
+    root.setAttribute('lang', lang);
+    var t = dict[lang];
+    document.title = t.title + ' — ' + data.meta.name;
+    var fontMap = { small: t.fontSmall, 'default': t.fontDefault, large: t.fontLarge };
+    document.querySelectorAll('button[data-font]').forEach(function(b){
+      b.textContent = fontMap[b.getAttribute('data-font')];
+    });
+    var langBtn = document.getElementById('lang-toggle');
+    if (langBtn) langBtn.textContent = t.langToggle;
+    var themeBtn = document.getElementById('theme-toggle');
+    if (themeBtn) themeBtn.textContent = root.getAttribute('data-theme') === 'dark' ? '☀️' : '🌙';
+    // Update every translatable text node marked with data-t.
+    document.querySelectorAll('[data-t]').forEach(function(el){
+      var key = el.getAttribute('data-t');
+      if (t[key] !== undefined) {
+        el.textContent = t[key];
+      } else if (inline[lang] && inline[lang][key] !== undefined) {
+        el.textContent = inline[lang][key];
+      }
+    });
+  }
+
+  // Theme toggle
+  var themeBtn = document.getElementById('theme-toggle');
+  themeBtn.addEventListener('click', function(){
+    var cur = root.getAttribute('data-theme');
+    root.setAttribute('data-theme', cur === 'dark' ? 'light' : 'dark');
+    themeBtn.textContent = root.getAttribute('data-theme') === 'dark' ? '☀️' : '🌙';
+  });
+
+  // Lang toggle
+  document.getElementById('lang-toggle').addEventListener('click', function(){
+    setLang(currentLang === 'en' ? 'zh' : 'en');
+  });
+
+  // Font group: set the matching data-* attribute on <html>, which the
+  // CSS attribute selectors use to drive the font-scale variable.
+  document.querySelectorAll('button[data-font]').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      root.setAttribute('data-font', btn.getAttribute('data-font'));
+      document.querySelectorAll('button[data-font]').forEach(function(b){ b.classList.remove('active'); });
+      btn.classList.add('active');
+    });
+  });
+})();
+</script>
+</body>
+</html>
