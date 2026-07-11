@@ -1,7 +1,7 @@
 {
   "name": "@condorhero/git-xray",
   "type": "module",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "packageManager": "pnpm@11.1.3",
   "description": "Diagnose a new codebase with 5 git commands before reading a single file. Generates a self-contained HTML report with charts, dark/light theme, i18n and a11y controls.",
   "author": "Condor Hero <love2xinwei@gmail.com>",
