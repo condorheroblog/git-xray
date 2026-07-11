@@ -19,23 +19,25 @@
 
 ```bash
 # 直接通过 npx 使用，无需安装
-npx xray
+npx -y @condorhero/git-xray
 
 # 指定仓库路径
-npx xray ./path/to/repo
+npx -y @condorhero/git-xray ./path/to/repo
 
 # 生成 HTML 报告并在浏览器打开
-npx xray . --html git-xray-report.html --open
+npx -y @condorhero/git-xray . --html git-xray-report.html --open
 
 # 中文报告，仅看最近 6 个月
-npx xray . --since "6 months ago" --lang zh
+npx -y @condorhero/git-xray . --since "6 months ago" --lang zh
 ```
 
 ## 命令行
 
+> `npm i -g @condorhero/git-xray` 后直接调用 `git-xray`。
+
 ```
 用法：
-  xray [目录] [选项]
+  git-xray [目录] [选项]
 
 参数：
   dir                  Git 仓库路径（默认：当前目录）
@@ -88,8 +90,8 @@ npx xray . --since "6 months ago" --lang zh
 ## 编程式 API
 
 ```ts
-import { runReport, renderTerminal, renderHtml } from '@condorhero/git-xray'
 import { writeFile } from 'node:fs/promises'
+import { renderHtml, renderTerminal, runReport } from '@condorhero/git-xray'
 
 const report = await runReport({
   cwd: './my-project',

@@ -1,12 +1,13 @@
 /**
  * @condorhero/git-xray — programmatic API.
  *
- * For the CLI entry point, see `xray` binary (run via `npx xray`).
+ * For the CLI entry point, see the `git-xray` binary
+ * (run via `npx -y @condorhero/git-xray`).
  * For lower-level access (custom reporters, embedders), use:
  *
  *   import { runReport } from '@condorhero/git-xray'
- *   import { renderTerminal } from '@condorhero/git-xray/report/terminal'
- *   import { renderHtml } from '@condorhero/git-xray/report/html'
+ *   import { renderTerminal } from '@condorhero/git-xray'
+ *   import { renderHtml } from '@condorhero/git-xray'
  */
 
 export { analyzeBugs } from './core/analyze/bugs.ts'

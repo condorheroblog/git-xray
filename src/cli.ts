@@ -1,14 +1,33 @@
 #!/usr/bin/env node
 import type { Locale } from './report/template.ts'
 import { spawn } from 'node:child_process'
-import { writeFile } from 'node:fs/promises'
+import { readFile, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import process from 'node:process'
+import { fileURLToPath } from 'node:url'
 import { runReport } from './core/index.ts'
 import { renderHtml } from './report/html.ts'
 import { renderTerminal } from './report/terminal.ts'
 
-const VERSION = '0.1.0'
+const VERSION = await readToolVersion()
+
+async function readToolVersion(): Promise<string> {
+  try {
+    // Resolve the current file's location and walk up to the package.json.
+    // Works for both `src/cli.ts` (dev) and `dist/cli.mjs` (built) since both
+    // share the project root.
+    const here = path.dirname(fileURLToPath(import.meta.url))
+    const pkgPath = path.resolve(here, '..', 'package.json')
+    const raw = await readFile(pkgPath, 'utf8')
+    const pkg = JSON.parse(raw) as { version?: unknown }
+    if (typeof pkg.version === 'string' && pkg.version)
+      return pkg.version
+  }
+  catch {
+    // fall through to fallback
+  }
+  return '0.0.0'
+}
 
 interface CliArgs {
   cwd: string
@@ -28,7 +47,7 @@ function printHelp(): void {
 🩻  git-xray — diagnose a codebase before reading it
 
 Usage:
-  xray [dir] [options]
+  git-xray [dir] [options]
 
 Arguments:
   dir                  Path to the git repository (default: current directory)
@@ -45,9 +64,9 @@ Options:
   -v, --version        Show tool version
 
 Examples:
-  xray·
-  xray . --html git-xray-report.html
-  xray ~/projects/foo --since "6 months ago" --lang zh --open
+  git-xray
+  git-xray . --html git-xray-report.html
+  git-xray ~/projects/foo --since "6 months ago" --lang zh --open
 `.trim()
   process.stdout.write(`${help}\n`)
 }
@@ -175,7 +194,7 @@ async function main(): Promise<void> {
     return
   }
   if (args.version) {
-    process.stdout.write(`xray ${VERSION}\n`)
+    process.stdout.write(`git-xray ${VERSION}\n`)
     return
   }
 

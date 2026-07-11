@@ -17,23 +17,25 @@ self-contained HTML report (dark/light, i18n, font/line controls, all charts inl
 
 ```bash
 # Use directly via npx — no install needed
-npx xray
+npx -y @condorhero/git-xray
 
 # Or specify a path
-npx xray ./path/to/repo
+npx -y @condorhero/git-xray ./path/to/repo
 
 # Generate an HTML report and open it in your browser
-npx xray . --html git-xray-report.html --open
+npx -y @condorhero/git-xray . --html git-xray-report.html --open
 
 # Chinese report, last 6 months only
-npx xray . --since "6 months ago" --lang zh
+npx -y @condorhero/git-xray . --since "6 months ago" --lang zh
 ```
 
 ## CLI
 
+> globally with `npm i -g @condorhero/git-xray` and then call `git-xray`
+
 ```
 Usage:
-  xray [dir] [options]
+  git-xray [dir] [options]
 
 Arguments:
   dir                  Path to the git repository (default: current directory)
